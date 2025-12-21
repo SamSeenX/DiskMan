@@ -42,6 +42,7 @@ h1 {
     margin-bottom: 1.5rem;
     background: linear-gradient(to right, #fff, #9ca3af);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -69,9 +70,11 @@ a {
     padding: 0 24px;
 }
 
+
 .gradient-text {
     background: var(--accent-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -133,6 +136,22 @@ nav {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-links a {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--text-primary);
 }
 
 .hero {
@@ -253,6 +272,16 @@ nav {
 
 .app-screenshot:hover {
     transform: rotateX(0deg) scale(1.02);
+}
+
+.storage-image {
+    width: 100%;
+    max-width: 500px;
+    margin: 2rem auto;
+    display: block;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
 }
 
 /* Features Grid */

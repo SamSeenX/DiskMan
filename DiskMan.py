@@ -66,28 +66,148 @@ def main():
     terminal_type = detect_terminal()
     
     # Try to set optimal terminal settings
-    # For iTerm2: sets font to 12pt and resizes window
-    # For others: just resizes window
     opt_result = optimize_terminal_view(
         target_cols=130, 
         target_rows=45, 
         preferred_font_size=12
     )
-    
-    # Get dynamic display settings based on actual terminal size
-    display_settings = get_optimal_display_settings()
-    items_per_page = 20  # Default to 20, user can change with 'l' command
-    
-    if not opt_result['size_changed']:
-        print(f"{Fore.YELLOW}Tip: For best experience, use iTerm2 or resize terminal to 130x45.{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}Detected terminal: {terminal_type}{Style.RESET_ALL}")
-        input(f"{Fore.CYAN}Press Enter to continue...{Style.RESET_ALL}")
-        clear_screen()
 
-    time.sleep(0.3)
+    # Help/Usage check first
+    if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', 'help', '?']:
+        show_help()
+        return
+
+    # Dynamic items per page
+    display_settings = get_optimal_display_settings()
+    items_per_page = 20
+
+    skip_welcome = False
+
+    # --- CLI COMMAND HANDLING ---
+    if len(sys.argv) > 1:
+        # Check for skip_welcome globally if we are running any command
+        skip_welcome = True
+        
+        command = sys.argv[1].lower()
+        
+        # 1. WEB DASHBOARD
+        if command == 'web':
+            port = 5001
+            if len(sys.argv) > 2 and sys.argv[2].isdigit():
+                port = int(sys.argv[2])
+            
+            # We need a cache for the web dashboard, scanning current dir
+            # We need a cache for the web dashboard, scanning current dir
+            current_dir = os.getcwd()
+            clear_screen()
+            print(f"{Fore.GREEN}🌐 Starting DiskMan Dashboard for: {current_dir}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}Press Ctrl+C to stop the server{Style.RESET_ALL}\n")
+            
+            cache = get_cache()
+            # Initial scan if needed (web server handles it, but good to ensure root)
+            list_directory_cached(current_dir) # Ensure cache is populated for web
+            from lib.web_server import start_dashboard
+            try:
+                start_dashboard(cache, current_dir, port=port)
+            except KeyboardInterrupt:
+                pass
+            return
+
+        # 2. CLEANER
+        elif command == 'clean':
+            print(f"{Fore.CYAN}Starting System Cleaner...{Style.RESET_ALL}")
+            show_cache_cleaner()
+            return
+
+        # 3. DIRECT ACTION COMMANDS (dup, top, f)
+        elif command in ['dup', 'duplicates', 'top', 'large', 'f', 'search', 'find']:
+            current_dir = os.getcwd()
+            cache = get_cache()
+            
+            # Scan current directory
+            list_directory_cached(current_dir) 
+            
+            action = None
+            
+            # execute command
+            if command in ['dup', 'duplicates']:
+                dups = cache.find_duplicates(current_dir)
+                action = show_duplicates(dups)
+            
+            elif command in ['top', 'large']:
+                limit = 50
+                if len(sys.argv) > 2 and sys.argv[2].isdigit():
+                    limit = int(sys.argv[2])
+                files = cache.get_largest_files(current_dir, limit=limit)
+                scan_root = cache.get_scan_root() or current_dir
+                action = show_largest_files(files, scan_root)
+            
+            elif command in ['f', 'search', 'find']:
+                if len(sys.argv) > 2:
+                    query = " ".join(sys.argv[2:])
+                    results = cache.search_files(query, current_dir)
+                    action = show_search_results(results, query, current_dir)
+                else:
+                    print(f"{Fore.RED}Usage: diskman f <query>{Style.RESET_ALL}")
+                    return
+            
+            # Handle Result Action
+            if action:
+                if action[0] == 'goto':
+                    # SWITCH TO INTERACTIVE MODE AT THIS PATH
+                    current_dir = action[1]
+                    # skip_welcome is already True
+                
+                elif action[0] == 'open':
+                    # Open and STAY in app (fall through)
+                    path = action[1]
+                    open_file_explorer(path)
+                    
+                elif action[0] == 'delete':
+                    # Delete and STAY in app (fall through)
+                    path = action[1]
+                    details = get_item_details(path)
+                    if details and show_delete_confirmation(details, use_trash=True):
+                        success, msg = delete_item(path, use_trash=True)
+                        if success:
+                            print(f"{Fore.GREEN}✓ Deleted: {os.path.basename(path)}{Style.RESET_ALL}")
+                            # Force rescan since we deleted something
+                            # Since we fall through to while True loop:
+                            # We can set force_rescan=True if we can access it?
+                            # Actually, force_rescan is local to main, but initialized AFTER this block.
+                            # We need to make sure delete invalidates cache properly.
+                            remove_from_cache(path)
+                        else:
+                            print(f"{Fore.RED}✗ {msg}{Style.RESET_ALL}")
+            
+            # FALL THROUGH TO INTERACTIVE MODE
+            # We removed the 'else: return' and 'return' statements.
+            # Program continues to '--- INTERACTIVE MODE ---' below.
+
+    # --- INTERACTIVE MODE ---
+    
+    if not skip_welcome: # Don't show terminal tips if we skipped welcome
+        if not opt_result['size_changed']:
+            print(f"{Fore.YELLOW}Tip: For best experience, use iTerm2 or resize terminal to 130x45.{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Detected terminal: {terminal_type}{Style.RESET_ALL}")
+            # Only pause if we didn't just run a command
+            if len(sys.argv) < 2: 
+                input(f"{Fore.CYAN}Press Enter to continue...{Style.RESET_ALL}")
+            clear_screen()
+        
+        time.sleep(0.3)
 
     # Welcome and get starting directory
-    current_dir = show_welcome_message()
+    # If using skip_welcome, current_dir is already set by the action
+    if not skip_welcome:
+        start_path = None
+        if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]):
+            start_path = os.path.abspath(sys.argv[1])
+        
+        if start_path:
+            current_dir = start_path
+        else:
+            current_dir = show_welcome_message()
     
     # State
     current_page = 0

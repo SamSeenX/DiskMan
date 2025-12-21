@@ -12,7 +12,7 @@ if [ ! -x "$0" ]; then
 fi
 
 echo "Starting DiskMan..."
-python3 DiskMan.py
+python3 DiskMan.py "$@"
 
 if [ $? -ne 0 ]; then
     echo ""

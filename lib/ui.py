@@ -200,7 +200,16 @@ def show_help():
   {Fore.WHITE}d 1-5       {Style.RESET_ALL}Delete items 1 through 5
   {Fore.WHITE}m 1-3,7 /tmp{Style.RESET_ALL}Move items 1, 2, 3, and 7 to /tmp
 
-{Fore.CYAN}{'─' * 78}{Style.RESET_ALL}
+{Fore.BLUE}{'─' * 78}{Style.RESET_ALL}
+{Fore.GREEN}{Style.BRIGHT}CLI QUICK START{Style.RESET_ALL}
+  Execute these commands directly from your terminal:
+  {Fore.WHITE}diskman dup         {Style.RESET_ALL}Find duplicates in current folder
+  {Fore.WHITE}diskman top 50      {Style.RESET_ALL}Show top 50 largest files
+  {Fore.WHITE}diskman f "query"   {Style.RESET_ALL}Search for files matching "query"
+  {Fore.WHITE}diskman clean       {Style.RESET_ALL}Run system cache cleaner
+  {Fore.WHITE}diskman web         {Style.RESET_ALL}Launch web dashboard
+
+{Fore.BLUE}{'─' * 78}{Style.RESET_ALL}
 {Fore.RED}  q         {Style.RESET_ALL}Quit DiskMan
 
 {Fore.BLUE}{'─' * 78}{Style.RESET_ALL}

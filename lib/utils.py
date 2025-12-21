@@ -223,19 +223,19 @@ def set_terminal_size(width, height):
 
                 # Try for iTerm2 as well
                 applescript_iterm = f'''
-                tell application "iTerm"
+                tell application "iTerm2"
                     if it is running then
-                        tell current window
+                        tell current session of current window
                             set columns to {width}
                             set rows to {height}
                         end tell
                     end if
                 end tell
                 '''
-                subprocess.run(['osascript', '-e', applescript_iterm], check=False)
+                subprocess.run(['osascript', '-e', applescript_iterm], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
                 # Also try the traditional stty command for terminal dimensions
-                subprocess.run(['stty', 'columns', str(width), 'rows', str(height)], check=False)
+                subprocess.run(['stty', 'columns', str(width), 'rows', str(height)], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
                 # Try using ANSI escape sequence for xterm-compatible terminals
                 sys.stdout.write(f"\x1b[8;{height};{width}t")
