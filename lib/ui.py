@@ -307,31 +307,112 @@ def show_bookmarks(bookmarks):
 
 
 def show_duplicates(duplicates):
-    """Display duplicate files found."""
+    """Display duplicate files found with actions.
+    
+    Returns: action tuple or None
+    """
     clear_screen()
-    print(f"\n{Fore.CYAN}{Style.BRIGHT}🔍 Duplicate Files{Style.RESET_ALL}")
-    print(f"{Fore.BLUE}{'─' * 80}{Style.RESET_ALL}")
+    print(f"\n{Fore.CYAN}{Style.BRIGHT}🔍 DUPLICATE FILES{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
     
     if not duplicates:
-        print(f"{Fore.GREEN}No duplicates found!{Style.RESET_ALL}")
-    else:
-        total_waste = 0
-        for i, dup in enumerate(duplicates[:20], 1):  # Limit display
-            size = dup['size']
-            files = dup['files']
-            waste = size * (len(files) - 1)
-            total_waste += waste
-            
-            print(f"\n{Fore.YELLOW}Group {i}: {Fore.WHITE}{humanize.naturalsize(size)} each "
-                  f"{Fore.RED}(wasting {humanize.naturalsize(waste)}){Style.RESET_ALL}")
-            for f in files[:5]:  # Limit files shown
-                print(f"  {Fore.WHITE}{os.path.basename(f)}{Style.RESET_ALL}")
-                print(f"    {Fore.WHITE}{Style.DIM}{os.path.dirname(f)}{Style.RESET_ALL}")
-        
-        print(f"\n{Fore.BLUE}{'─' * 80}{Style.RESET_ALL}")
-        print(f"{Fore.RED}{Style.BRIGHT}Potential space savings: {humanize.naturalsize(total_waste)}{Style.RESET_ALL}")
+        print(f"\n{Fore.GREEN}✓ No duplicates found! Your files are unique.{Style.RESET_ALL}")
+        input(f"\n{Fore.CYAN}Press Enter to continue...{Style.RESET_ALL}")
+        return None
     
-    input(f"\n{Fore.CYAN}Press Enter to continue...{Style.RESET_ALL}")
+    # Calculate totals
+    total_wasted = sum(d.get('wasted', d['size'] * (len(d['files']) - 1)) for d in duplicates)
+    total_groups = len(duplicates)
+    
+    print(f"{Fore.RED}{Style.BRIGHT}Found {total_groups} duplicate groups  •  Potential savings: {humanize.naturalsize(total_wasted)}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
+    
+    # Show header
+    print(f"{Fore.GREEN}{Style.BRIGHT}{'#':<4} {'Wasted':<12} {'Each':<12} {'Copies':<8} {'Filename'}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
+    
+    # Show top duplicates (limit to 15)
+    display_dups = duplicates[:15]
+    for i, dup in enumerate(display_dups, 1):
+        size = dup['size']
+        files = dup['files']
+        count = dup.get('count', len(files))
+        wasted = dup.get('wasted', size * (count - 1))
+        
+        # Get filename (they're all the same name for true duplicates)
+        filename = os.path.basename(files[0])
+        if len(filename) > 40:
+            filename = filename[:37] + "..."
+        
+        # Color based on wasted space
+        if wasted > 100 * 1024 * 1024:  # > 100MB
+            waste_color = Fore.RED + Style.BRIGHT
+        elif wasted > 10 * 1024 * 1024:  # > 10MB
+            waste_color = Fore.YELLOW
+        else:
+            waste_color = Fore.WHITE
+        
+        print(f"{Fore.YELLOW}{i:<4}{Style.RESET_ALL} "
+              f"{waste_color}{humanize.naturalsize(wasted):<12}{Style.RESET_ALL} "
+              f"{Fore.WHITE}{humanize.naturalsize(size):<12}{Style.RESET_ALL} "
+              f"{Fore.CYAN}{count:<8}{Style.RESET_ALL} "
+              f"{Fore.WHITE}{filename}{Style.RESET_ALL}")
+    
+    if len(duplicates) > 15:
+        print(f"\n{Fore.WHITE}{Style.DIM}... and {len(duplicates) - 15} more groups{Style.RESET_ALL}")
+    
+    print(f"\n{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}Commands:{Style.RESET_ALL} {Fore.YELLOW}#{Style.RESET_ALL}=view details  {Fore.WHITE}Enter{Style.RESET_ALL}=back")
+    
+    choice = input(f"{Fore.YELLOW}> {Style.RESET_ALL}").strip()
+    
+    if choice.isdigit():
+        idx = int(choice) - 1
+        if 0 <= idx < len(display_dups):
+            return show_duplicate_detail(display_dups[idx])
+    
+    return None
+
+
+def show_duplicate_detail(dup):
+    """Show detailed view of a duplicate group with actions."""
+    clear_screen()
+    size = dup['size']
+    files = dup['files']
+    wasted = dup.get('wasted', size * (len(files) - 1))
+    
+    print(f"\n{Fore.CYAN}{Style.BRIGHT}📋 DUPLICATE GROUP DETAILS{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}File size: {Fore.YELLOW}{humanize.naturalsize(size)}{Style.RESET_ALL}  •  "
+          f"{Fore.WHITE}Copies: {Fore.CYAN}{len(files)}{Style.RESET_ALL}  •  "
+          f"{Fore.WHITE}Wasted: {Fore.RED}{humanize.naturalsize(wasted)}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
+    
+    print(f"\n{Fore.GREEN}{Style.BRIGHT}{'#':<4} {'Location'}{Style.RESET_ALL}")
+    
+    for i, filepath in enumerate(files, 1):
+        filename = os.path.basename(filepath)
+        dirname = os.path.dirname(filepath)
+        if len(dirname) > 80:
+            dirname = "..." + dirname[-77:]
+        print(f"{Fore.YELLOW}{i:<4}{Style.RESET_ALL} {Fore.WHITE}{filename}{Style.RESET_ALL}")
+        print(f"     {Fore.WHITE}{Style.DIM}{dirname}{Style.RESET_ALL}")
+    
+    print(f"\n{Fore.BLUE}{'─' * 100}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}Commands:{Style.RESET_ALL} {Fore.YELLOW}#{Style.RESET_ALL}=go to folder  {Fore.YELLOW}o #{Style.RESET_ALL}=open in Finder  {Fore.WHITE}Enter{Style.RESET_ALL}=back")
+    
+    choice = input(f"{Fore.YELLOW}> {Style.RESET_ALL}").strip()
+    
+    if choice.startswith('o ') and choice[2:].isdigit():
+        idx = int(choice[2:]) - 1
+        if 0 <= idx < len(files):
+            return ('open', files[idx])
+    elif choice.isdigit():
+        idx = int(choice) - 1
+        if 0 <= idx < len(files):
+            return ('goto', os.path.dirname(files[idx]))
+    
+    return None
 
 
 def show_cache_cleaner(cache_folders):

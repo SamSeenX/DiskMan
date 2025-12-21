@@ -208,28 +208,43 @@ class DirectoryCache:
         else:
             return 'recent'   # < 3 months
     
-    def find_duplicates(self, dir_path=None):
-        """Find potential duplicate files by size, then verify with hash."""
+    def find_duplicates(self, dir_path=None, min_size=1024):
+        """Find potential duplicate files by size, then verify with hash.
+        
+        Args:
+            dir_path: Directory to search (defaults to scan_root)
+            min_size: Minimum file size to consider (default 1KB)
+        
+        Returns sorted by wasted space (largest first).
+        """
         target = dir_path or self.scan_root
         if not target:
             return []
         
-        start_spinner("Scanning for duplicates...")
+        start_spinner("Finding duplicates...")
         
-        # Group by size
+        # Group by size (skip tiny files)
         size_groups = {}
         for path, size in self.sizes.items():
-            if path.startswith(target) and os.path.isfile(path) and size > 0:
-                if size not in size_groups:
-                    size_groups[size] = []
-                size_groups[size].append(path)
+            if path.startswith(target) and size >= min_size:
+                # Only consider files, not directories
+                if path not in self.cache:  # Not a directory
+                    if size not in size_groups:
+                        size_groups[size] = []
+                    size_groups[size].append(path)
         
-        # Only keep groups with duplicates
+        # Only keep groups with potential duplicates
         potential_dups = {k: v for k, v in size_groups.items() if len(v) > 1}
         
         duplicates = []
+        total_groups = len(potential_dups)
+        processed = 0
+        
         for size, paths in potential_dups.items():
-            # Hash first 64KB of each file
+            processed += 1
+            update_spinner_folder(f"Checking {processed}/{total_groups} groups")
+            
+            # Hash first 64KB of each file for quick comparison
             hashes = {}
             for path in paths:
                 try:
@@ -243,10 +258,16 @@ class DirectoryCache:
             
             for file_hash, hash_paths in hashes.items():
                 if len(hash_paths) > 1:
+                    wasted = size * (len(hash_paths) - 1)
                     duplicates.append({
                         'size': size,
-                        'files': hash_paths
+                        'files': hash_paths,
+                        'wasted': wasted,
+                        'count': len(hash_paths)
                     })
+        
+        # Sort by wasted space (largest first)
+        duplicates.sort(key=lambda x: x['wasted'], reverse=True)
         
         stop_spinner()
         return duplicates

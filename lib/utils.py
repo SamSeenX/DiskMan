@@ -41,10 +41,10 @@ SPINNER_MESSAGES = [
     (10, "This folder is bigger than expected..."),
     (15, "Wow, you really have a lot of stuff..."),
     (20, "Did you ever delete anything? 🤔"),
-    (30, "I've seen smaller hard drives..."),
+    (30, "I've seen smaller hard disks..."),
     (45, "Making coffee while we wait..."),
     (60, "Maybe time for a snack break?"),
-    (90, "I'm not stuck, you just have too many files! 🤔"),
+    (90, "I'm not stuck, it's just... you have too many files! 🤔"),
     (120, "Still going... you might want to sit down"),
     (180, "This is taking forever. Literally."),
     (300, "I'm starting to question my life choices..."),
@@ -108,7 +108,16 @@ def _show_spinner(message):
         
         # Build status line
         count_display = f" {Fore.GREEN}({spinner_folder_count}){Style.RESET_ALL}" if spinner_folder_count > 0 else ""
-        time_display = f" {Fore.WHITE}{int(elapsed)}s{Style.RESET_ALL}" if elapsed > 5 else ""
+        
+        # Format time display (Xm Ys for >90s, amber color)
+        if elapsed > 90:
+            mins = int(elapsed) // 60
+            secs = int(elapsed) % 60
+            time_display = f" {Fore.YELLOW}{mins}m {secs}s{Style.RESET_ALL}"
+        elif elapsed > 5:
+            time_display = f" {Fore.WHITE}{int(elapsed)}s{Style.RESET_ALL}"
+        else:
+            time_display = ""
         
         status = f"\r{Fore.CYAN}{current_message}{Style.RESET_ALL}{time_display}{folder_display}{count_display} {Fore.YELLOW}{char}{Style.RESET_ALL}"
         

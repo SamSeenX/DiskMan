@@ -392,7 +392,14 @@ def main():
         # --- DUPLICATES ---
         elif choice == 'dup':
             dups = cache.find_duplicates(current_dir)
-            show_duplicates(dups)
+            action = show_duplicates(dups)
+            if action:
+                if action[0] == 'goto':
+                    current_dir = action[1]
+                    current_page = 0
+                elif action[0] == 'open':
+                    open_file_explorer(action[1], os.path.basename(action[1]))
+                    input(f"{Fore.CYAN}Press Enter...{Style.RESET_ALL}")
 
         # --- LARGEST FILES (BigTree functionality) ---
         elif choice == 'top' or choice.startswith('top '):
