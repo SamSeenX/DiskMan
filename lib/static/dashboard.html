@@ -1340,7 +1340,6 @@
                     hideTooltip();
                 })
                 .on('click', function (event, d) {
-                    console.log('Pie slice clicked:', d.data.name, 'is_dir:', d.data.is_dir, 'path:', d.data.path);
                     if (d.data.is_dir) {
                         navigateTo(d.data.path);
                     }
@@ -1549,13 +1548,9 @@
 
         // Navigation
         async function navigateTo(path, isOutsideCache = false) {
-            console.log('navigateTo called with path:', path);
-
             // Check if this path is outside current cache
             const scanRoot = currentData?.scan_root || '';
             const needsRescan = scanRoot && (!path.startsWith(scanRoot) || path.length < scanRoot.length);
-
-            console.log('scanRoot:', scanRoot, 'needsRescan:', needsRescan);
 
             // Show scanning overlay for paths that will trigger a rescan
             if (needsRescan) {
@@ -1566,9 +1561,7 @@
             }
 
             try {
-                console.log('Fetching folder data...');
                 const data = await api(`/folder?path=${encodeURIComponent(path)}`);
-                console.log('Got folder data:', data?.path, 'children:', data?.children?.length);
 
                 hideScanningOverlay();
                 document.body.style.cursor = '';
@@ -1976,6 +1969,7 @@
                         <div class="top-file-path">${f.relative_path}</div>
                     </div>
                     <span class="top-file-size">${f.size_human}</span>
+                    <button class="item-action-btn" onclick="openInFinder('${f.path.replace(/'/g, "\\'")}')" title="Open in Finder">📂</button>
                 </div>
             `).join('');
         }

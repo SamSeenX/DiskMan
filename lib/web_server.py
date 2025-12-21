@@ -50,21 +50,16 @@ def get_folder_data(path, auto_rescan=True):
         # or if it's a parent of scan_root
         is_outside_cache = not path.startswith(scan_root) or len(path) < len(scan_root)
     
-    print(f"[web_server] get_folder_data: path={path}, scan_root={scan_root}, is_outside_cache={is_outside_cache}")
-    
     # If outside cache and auto_rescan is enabled, rescan from the new path
     if is_outside_cache and auto_rescan:
-        print(f"[web_server] Triggering rescan for outside-cache path...")
         _cache.scan_directory_tree(path)
         scan_root = path
     
     # Get items from cache
     items = _cache.get_directory(path)
-    print(f"[web_server] Cache lookup: items={'found' if items else 'NOT FOUND'}, count={len(items) if items else 0}")
     
     if items is None:
-        # Not in cache - this shouldn't happen for subfolders, log it!
-        print(f"[web_server] WARNING: Path not in cache! This may trigger unnecessary rescan.")
+        # Not in cache - try scanning this specific path
         if auto_rescan:
             _cache.scan_directory_tree(path)
             items = _cache.get_directory(path)
