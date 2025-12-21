@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bookmarks system for DiskMan V2.
+Bookmarks system for DiskMan V3.
 """
 import os
 import json

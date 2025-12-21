@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced directory cache for DiskMan V2.
+Enhanced directory cache for DiskMan V3.
 Provides efficient caching with filtering, sorting, and analysis capabilities.
 """
 import os

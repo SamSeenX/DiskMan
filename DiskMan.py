@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DiskMan V2 - Enhanced Disk Space Analyzer by SamSeen
+DiskMan V3 - Enhanced Disk Space Analyzer by SamSeen
 
 A powerful tool to visualize and manage disk space usage with advanced features.
 """
@@ -61,7 +61,7 @@ except ImportError:
 
 
 def main():
-    """Main function for DiskMan V2."""
+    """Main function for DiskMan V3."""
     # Optimize terminal for best viewing experience
     terminal_type = detect_terminal()
     
@@ -131,7 +131,7 @@ def main():
 
         # --- QUIT ---
         if choice == 'q':
-            print(f"\n{Fore.GREEN}{Style.BRIGHT}Thanks for using DiskMan V2!{Style.RESET_ALL}")
+            print(f"\n{Fore.GREEN}{Style.BRIGHT}Thanks for using DiskMan V3!{Style.RESET_ALL}")
             print(f"{Fore.CYAN}Made with ❤️  by SamSeen{Style.RESET_ALL}")
             print(f"{Fore.YELLOW}☕ If you found this useful: {Fore.WHITE}https://buymeacoffee.com/samseen{Style.RESET_ALL}\n")
             break
@@ -465,6 +465,26 @@ def main():
                             print(f"\n{Fore.RED}✗ {msg}{Style.RESET_ALL}")
                         input(f"{Fore.CYAN}Press Enter...{Style.RESET_ALL}")
 
+        # --- WEB DASHBOARD ---
+        elif choice == 'web' or choice.startswith('web '):
+            # Parse optional port
+            port = 5001
+            if choice.startswith('web ') and choice[4:].strip().isdigit():
+                port = int(choice[4:].strip())
+            
+            from lib.web_server import start_dashboard
+            
+            print(f"\n{Fore.GREEN}🌐 Starting DiskMan Dashboard...{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Opening: {Fore.WHITE}http://localhost:{port}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}Press Ctrl+C to stop and return to CLI{Style.RESET_ALL}\n")
+            
+            try:
+                start_dashboard(cache, current_dir, port=port)
+            except KeyboardInterrupt:
+                pass
+            print(f"\n{Fore.GREEN}Dashboard stopped. Returning to CLI...{Style.RESET_ALL}")
+            input(f"{Fore.CYAN}Press Enter...{Style.RESET_ALL}")
+
         # --- NAVIGATE TO ITEM ---
         elif choice.isdigit():
             idx = int(choice) - 1
@@ -491,6 +511,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print(f"\n\n{Fore.GREEN}Thanks for using DiskMan V2!{Style.RESET_ALL}")
+        print(f"\n\n{Fore.GREEN}Thanks for using DiskMan V3!{Style.RESET_ALL}")
         print(f"{Fore.YELLOW}☕ Support: {Fore.WHITE}https://buymeacoffee.com/samseen{Style.RESET_ALL}")
         sys.exit(0)

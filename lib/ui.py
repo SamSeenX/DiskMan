@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced UI for DiskMan V2.
+Enhanced UI for DiskMan V3.
 """
 import os
 import time
@@ -32,7 +32,7 @@ def display_directory(directory, items, page=0, items_per_page=20, is_cached=Fal
     
     # Build title line content (without colors for length calculation)
     # Emoji take 2 terminal columns but count as 1 in len()
-    title_content = f"DISKMAN V2  {cache_icon}  [{sort_char}] {hidden_icon}"
+    title_content = f"DISKMAN V3  {cache_icon}  [{sort_char}] {hidden_icon}"
     emoji_adjustment = 1  # 👁 takes 2 spaces
     if filter_text:
         title_content += f"  🔍 {filter_text}"
@@ -47,9 +47,9 @@ def display_directory(directory, items, page=0, items_per_page=20, is_cached=Fal
     
     # Title line with colors
     if filter_text:
-        print(f"{Fore.CYAN}║{Style.RESET_ALL} {Fore.WHITE}{Style.BRIGHT}DISKMAN V2{Style.RESET_ALL}  {cache_color}{cache_icon}{Style.RESET_ALL}  {Fore.YELLOW}[{sort_char}]{Style.RESET_ALL} {hidden_icon}  {Fore.MAGENTA}🔍 {filter_text}{Style.RESET_ALL}{' ' * title_padding}{Fore.CYAN}║{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}║{Style.RESET_ALL} {Fore.WHITE}{Style.BRIGHT}DISKMAN V3{Style.RESET_ALL}  {cache_color}{cache_icon}{Style.RESET_ALL}  {Fore.YELLOW}[{sort_char}]{Style.RESET_ALL} {hidden_icon}  {Fore.MAGENTA}🔍 {filter_text}{Style.RESET_ALL}{' ' * title_padding}{Fore.CYAN}║{Style.RESET_ALL}")
     else:
-        print(f"{Fore.CYAN}║{Style.RESET_ALL} {Fore.WHITE}{Style.BRIGHT}DISKMAN V2{Style.RESET_ALL}  {cache_color}{cache_icon}{Style.RESET_ALL}  {Fore.YELLOW}[{sort_char}]{Style.RESET_ALL} {hidden_icon}{' ' * title_padding}{Fore.CYAN}║{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}║{Style.RESET_ALL} {Fore.WHITE}{Style.BRIGHT}DISKMAN V3{Style.RESET_ALL}  {cache_color}{cache_icon}{Style.RESET_ALL}  {Fore.YELLOW}[{sort_char}]{Style.RESET_ALL} {hidden_icon}{' ' * title_padding}{Fore.CYAN}║{Style.RESET_ALL}")
     
     print(f"{Fore.CYAN}╠{'═' * (width-2)}╣{Style.RESET_ALL}")
     print(f"{Fore.CYAN}║{Style.RESET_ALL} {Fore.GREEN}📁{Style.RESET_ALL} {Fore.WHITE}{Style.BRIGHT}{path_display}{Style.RESET_ALL}{' ' * path_padding}{Fore.CYAN}║{Style.RESET_ALL}")
@@ -139,7 +139,7 @@ def show_navigation_options(current_page, total_pages, show_hidden=True, sort_mo
     print(f"{Fore.BLUE}─{Style.RESET_ALL} {Fore.YELLOW}o{Style.RESET_ALL}=open {Fore.YELLOW}d{Style.RESET_ALL}=del {Fore.YELLOW}D{Style.RESET_ALL}=perm {Fore.YELLOW}m{Style.RESET_ALL}=move {Fore.YELLOW}c{Style.RESET_ALL}=copy │ {Fore.YELLOW}b{Style.RESET_ALL}=bookmarks {Fore.YELLOW}e{Style.RESET_ALL}=stats {Fore.YELLOW}x{Style.RESET_ALL}=export")
     
     # Line 3: Tools & System
-    print(f"{Fore.BLUE}─{Style.RESET_ALL} {Fore.YELLOW}top{Style.RESET_ALL} {Fore.YELLOW}dup{Style.RESET_ALL} {Fore.YELLOW}clean{Style.RESET_ALL} {Fore.YELLOW}r{Style.RESET_ALL}=rescan {Fore.CYAN}?{Style.RESET_ALL}=help {Fore.RED}q{Style.RESET_ALL}=quit")
+    print(f"{Fore.BLUE}─{Style.RESET_ALL} {Fore.YELLOW}top{Style.RESET_ALL} {Fore.YELLOW}dup{Style.RESET_ALL} {Fore.YELLOW}clean{Style.RESET_ALL} {Fore.GREEN}web{Style.RESET_ALL} {Fore.YELLOW}r{Style.RESET_ALL}=rescan {Fore.CYAN}?{Style.RESET_ALL}=help {Fore.RED}q{Style.RESET_ALL}=quit")
 
 
 def show_help():
@@ -148,7 +148,7 @@ def show_help():
     
     print(f"""
 {Fore.CYAN}{Style.BRIGHT}╔══════════════════════════════════════════════════════════════════════════════╗
-║                         DISKMAN V2 - FULL HELP                               ║
+║                         DISKMAN V3 - FULL HELP                               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
 
 {Fore.GREEN}{Style.BRIGHT}NAVIGATION{Style.RESET_ALL}
@@ -185,6 +185,8 @@ def show_help():
 {Fore.YELLOW}  dup       {Style.RESET_ALL}Find duplicate files (by size + hash)
 {Fore.YELLOW}  clean     {Style.RESET_ALL}Show system cache/temp folders to free space
 {Fore.YELLOW}  x         {Style.RESET_ALL}Export current directory to CSV report
+{Fore.GREEN}  web       {Style.RESET_ALL}Open interactive web dashboard (localhost:5001)
+{Fore.GREEN}  web 8080  {Style.RESET_ALL}Web dashboard on custom port
 
 {Fore.GREEN}{Style.BRIGHT}DISPLAY ICONS{Style.RESET_ALL}
 {Fore.GREEN}  ●{Style.RESET_ALL} = Cached (fast)    {Fore.YELLOW}●{Style.RESET_ALL} = Fresh scan
@@ -225,7 +227,7 @@ def show_welcome_message():
     
     print(logo)
     print(f"{Fore.GREEN}{Style.BRIGHT}{'═' * 60}{Style.RESET_ALL}")
-    print(f"{Fore.YELLOW}{Style.BRIGHT}{'DiskMan V2 - Enhanced Disk Space Analyzer':^60}{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}{Style.BRIGHT}{'DiskMan V3 - Enhanced Disk Space Analyzer':^60}{Style.RESET_ALL}")
     print(f"{Fore.GREEN}{Style.BRIGHT}{'═' * 60}{Style.RESET_ALL}")
     
     features = [

@@ -1,15 +1,42 @@
-# DiskMan - Advanced Disk Space Analyzer
+# DiskMan V3 - Advanced Disk Space Analyzer
 
-![DiskMan Logo](https://img.shields.io/badge/DiskMan-Disk%20Analyzer-blue)
+![DiskMan Logo](https://img.shields.io/badge/DiskMan-V3-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-blue)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 
-**DiskMan** is a powerful, feature-rich disk space analyzer that helps you visualize, analyze, and manage storage usage with an intuitive terminal interface.
+**DiskMan V3** is a powerful, feature-rich disk space analyzer that helps you visualize, analyze, and manage storage usage with an intuitive terminal interface and interactive web dashboard.
+
+## 🆕 What's New in V3
+
+> **Web Dashboard** - The biggest update yet! Launch a beautiful interactive web UI with the `web` command:
+> - 📊 Interactive pie chart with drill-down navigation
+> - 🖼️ Image thumbnails and video previews
+> - 🔍 Search, duplicates, and cache cleaner
+> - 📁 Navigate parent folders with auto-rescan
+> - 😄 Fun loading messages (just like the CLI!)
+
+## 📸 Screenshots
+
+<p align="center">
+  <img src="src/Screenshot-Welcome.png" alt="Welcome Screen" width="80%"/>
+</p>
+<p align="center"><em>Welcome Screen - Start scanning with a simple command</em></p>
+
+<p align="center">
+  <img src="src/Screenshot-CLI.png" alt="CLI Interface" width="80%"/>
+</p>
+<p align="center"><em>CLI Interface - Navigate, search, and manage your files</em></p>
+
+<p align="center">
+  <img src="src/Screenshot-webUI.png" alt="Web Dashboard" width="80%"/>
+</p>
+<p align="center"><em>Web Dashboard - Interactive pie charts, file previews, and more!</em></p>
 
 ## ✨ Features
 
 - **Smart Caching** - One deep scan, instant navigation
+- **🌐 Web Dashboard** - Interactive browser UI with pie charts, image previews, and video playback
 - **Deep Search** - Find files across all subfolders
 - **Largest Files** - Instantly see biggest space hogs
 - **System Cache Cleaner** - Clear common cache folders
@@ -91,6 +118,7 @@ python DiskMan.py
 ### Tools
 | Command | Action |
 |---------|--------|
+| `web` | Launch interactive web dashboard |
 | `b` | Manage bookmarks |
 | `b+` | Bookmark current folder |
 | `e` | Extension statistics |

@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiskMan Dashboard</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-hover: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --border-color: #30363d;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-yellow: #d29922;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --accent-cyan: #39c5cf;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --radius: 8px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-title svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--transition);
+        }
+
+        .toolbar-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--text-muted);
+        }
+
+        .toolbar-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #fff;
+        }
+
+        .toolbar-btn.primary:hover {
+            background: #4c96eb;
+        }
+
+        .toolbar-btn.danger {
+            color: var(--accent-red);
+        }
+
+        .toolbar-btn.danger:hover {
+            background: rgba(248, 81, 73, 0.1);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            color: var(--accent-blue);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color var(--transition);
+        }
+
+        .breadcrumb-item:hover {
+            color: #79b8ff;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.current {
+            color: var(--text-primary);
+            cursor: default;
+        }
+
+        .breadcrumb-item.current:hover {
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.outside-cache {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .breadcrumb-item.outside-cache:hover {
+            color: var(--accent-yellow);
+        }
+
+        .breadcrumb-item.outside-cache::before {
+            content: '↑';
+            margin-right: 4px;
+            font-style: normal;
+        }
+
+        .breadcrumb-rescan-hint {
+            font-size: 11px;
+            color: var(--accent-yellow);
+            margin-left: 12px;
+            padding: 2px 8px;
+            background: rgba(210, 153, 34, 0.1);
+            border-radius: 4px;
+        }
+
+        .breadcrumb-sep {
+            color: var(--text-muted);
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 24px;
+            padding: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Pie Chart */
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .pie-slice {
+            transition: transform var(--transition);
+        }
+
+        .pie-slice.folder {
+            cursor: pointer;
+        }
+
+        .pie-slice.file {
+            cursor: default;
+            opacity: 0.85;
+        }
+
+        .pie-slice.folder:hover {
+            filter: brightness(1.15);
+        }
+
+        .pie-slice.file:hover {
+            filter: brightness(1.05);
+        }
+
+        .pie-label {
+            font-size: 12px;
+            fill: var(--text-primary);
+            pointer-events: none;
+        }
+
+        /* Chart Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .legend-folder {
+            width: 20px;
+            height: 14px;
+            background: linear-gradient(135deg, var(--accent-blue) 50%, #4c96eb 50%);
+            border-radius: 3px;
+        }
+
+        .legend-file {
+            width: 20px;
+            height: 14px;
+            background: repeating-linear-gradient(45deg,
+                    var(--accent-purple),
+                    var(--accent-purple) 2px,
+                    transparent 2px,
+                    transparent 4px);
+            border-radius: 3px;
+            opacity: 0.85;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            font-size: 13px;
+            box-shadow: var(--shadow);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-type {
+            font-size: 11px;
+            margin-bottom: 4px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .tooltip-type.folder {
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .tooltip-type.file {
+            background: rgba(163, 113, 247, 0.2);
+            color: var(--accent-purple);
+        }
+
+        .tooltip-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            margin-top: 8px;
+        }
+
+        .tooltip-size {
+            color: var(--accent-cyan);
+        }
+
+        .tooltip-percent {
+            color: var(--text-secondary);
+        }
+
+        .tooltip-hint {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Items List */
+        .items-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+            transition: background var(--transition);
+        }
+
+        .item-row:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-thumbnail {
+            width: 36px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+        }
+
+        .item-thumbnail-placeholder {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .item-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .item-name:hover {
+            color: var(--accent-blue);
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .item-row:hover .item-actions {
+            opacity: 1;
+        }
+
+        .item-action-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all var(--transition);
+        }
+
+        .item-action-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .item-action-btn.delete:hover {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .bottom-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Extension Bar Chart */
+        .ext-bar {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            gap: 12px;
+        }
+
+        .ext-name {
+            width: 80px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .ext-bar-container {
+            flex: 1;
+            height: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .ext-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .ext-size {
+            width: 80px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Top Files List */
+        .top-file-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        .top-file-row:last-child {
+            border-bottom: none;
+        }
+
+        .top-file-rank {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .top-file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-file-name {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-file-path {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-file-size {
+            font-size: 13px;
+            color: var(--accent-yellow);
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform var(--transition);
+        }
+
+        .modal-overlay.visible .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Delete confirm */
+        .delete-info {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .delete-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .delete-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .delete-warning {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            color: var(--accent-red);
+            font-size: 13px;
+        }
+
+        /* Search Input */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .search-results {
+            margin-top: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Duplicates */
+        .dup-group {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .dup-group-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dup-group-title {
+            font-weight: 500;
+        }
+
+        .dup-wasted {
+            color: var(--accent-red);
+            font-size: 13px;
+        }
+
+        .dup-file {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dup-file:last-child {
+            border-bottom: none;
+        }
+
+        .dup-file-path {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Cache Cleaner */
+        .cache-folder {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 16px;
+        }
+
+        .cache-folder:last-child {
+            border-bottom: none;
+        }
+
+        .cache-folder-info {
+            flex: 1;
+        }
+
+        .cache-folder-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .cache-folder-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .cache-folder-size {
+            color: var(--accent-yellow);
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Scanning Overlay */
+        .scanning-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 17, 23, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scanning-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scanning-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 24px;
+        }
+
+        .scanning-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .scanning-path {
+            font-size: 14px;
+            color: var(--accent-cyan);
+            max-width: 80%;
+            text-align: center;
+            word-break: break-all;
+        }
+
+        .scanning-hint {
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Media Preview Overlay */
+        .preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .preview-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .preview-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            z-index: 10;
+        }
+
+        .preview-close:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .preview-content {
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-image {
+            max-width: 90vw;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-video {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 24px;
+            text-align: center;
+        }
+
+        .preview-filename {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .preview-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .preview-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            margin-top: 24px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .footer-brand {
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .footer-heart {
+            color: var(--accent-red);
+        }
+
+        .footer-link {
+            color: var(--accent-yellow);
+            text-decoration: none;
+            margin-left: 8px;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                </path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            DiskMan Dashboard
+        </div>
+        <div class="toolbar">
+            <button class="toolbar-btn primary" onclick="rescan()">🔄 Rescan</button>
+            <button class="toolbar-btn" onclick="showSearch()">🔍 Search</button>
+            <button class="toolbar-btn" onclick="showDuplicates()">📋 Duplicates</button>
+            <button class="toolbar-btn" onclick="showCacheCleaner()">🧹 Clean</button>
+            <button class="toolbar-btn" onclick="showTopFiles()">📊 Top Files</button>
+            <button class="toolbar-btn" onclick="goHome()">🏠</button>
+            <button class="toolbar-btn" onclick="goUp()">⬆️</button>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" id="breadcrumb">
+        <span class="loading"><span class="spinner"></span>Loading...</span>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Left Column: Chart + Stats -->
+        <div class="left-column">
+            <!-- Pie Chart Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span>📊 Disk Usage</span>
+                    <span id="folder-size" class="stat-value" style="font-size: 14px;"></span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" id="chart-container">
+                        <div class="loading"><span class="spinner"></span>Loading chart...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Top Files & Extensions -->
+            <div class="bottom-section">
+                <div class="card">
+                    <div class="card-header">🏆 Largest Files</div>
+                    <div class="card-body" id="top-files-list">
+                        <div class="loading"><span class="spinner"></span>Loading...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">📁 Space by Extension</div>
+                    <div class="card-body" id="extensions-chart">
+                        <div class="loading"><span class="spinner"></span>Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid (moved below) -->
+            <div class="stats-grid" id="stats-grid" style="margin-top: 24px;">
+            </div>
+        </div>
+
+        <!-- Right Column: Items List -->
+        <div class="card">
+            <div class="card-header">
+                <span>📂 Items</span>
+                <span id="item-count" style="color: var(--text-secondary); font-weight: normal;"></span>
+            </div>
+            <div class="items-list" id="items-list">
+                <div class="loading"><span class="spinner"></span>Loading...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-brand">DiskMan V3</div>
+        <div>Made with <span class="footer-heart">❤️</span> by SamSeen</div>
+        <div>
+            <span>☕</span> If you found this useful:
+            <a href="https://buymeacoffee.com/samseen" target="_blank" class="footer-link">buymeacoffee.com/samseen</a>
+        </div>
+    </footer>
+
+    <!-- Scanning Overlay -->
+    <div class="scanning-overlay" id="scanning-overlay">
+        <div class="scanning-spinner"></div>
+        <div class="scanning-title">Scanning Directory...</div>
+        <div class="scanning-path" id="scanning-path"></div>
+        <div class="scanning-hint">This may take a moment for large directories</div>
+    </div>
+
+    <!-- Media Preview Overlay -->
+    <div class="preview-overlay" id="preview-overlay" onclick="closePreview(event)">
+        <button class="preview-close" onclick="closePreview()">×</button>
+        <div class="preview-content" id="preview-content" onclick="event.stopPropagation()"></div>
+        <div class="preview-info">
+            <div class="preview-filename" id="preview-filename"></div>
+            <div class="preview-meta" id="preview-meta"></div>
+            <div class="preview-hint">Click outside or press ESC to close</div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-type"></div>
+        <div class="tooltip-name"></div>
+        <div class="tooltip-size"></div>
+        <div class="tooltip-percent"></div>
+        <div class="tooltip-hint"></div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title">Modal</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer" id="modal-footer"></div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentPath = null;
+        let currentData = null;
+
+        // API helpers
+        async function api(endpoint, options = {}) {
+            const response = await fetch(`/api${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            return response.json();
+        }
+
+        // Initialize
+        async function init() {
+            // Load initial folder
+            const data = await api('/folder');
+            if (data && !data.error) {
+                currentPath = data.path;
+                renderFolder(data);
+            }
+
+            // Load stats
+            loadStats();
+            loadExtensions();
+            loadTopFiles();
+        }
+
+        // Render folder
+        function renderFolder(data) {
+            currentData = data;
+            currentPath = data.path;
+
+            // Update breadcrumb
+            renderBreadcrumb(data.breadcrumbs);
+
+            // Update folder size
+            document.getElementById('folder-size').textContent = data.total_size_human;
+
+            // Update pie chart
+            renderPieChart(data.children);
+
+            // Update items list
+            renderItemsList(data.children);
+
+            // Update item count
+            document.getElementById('item-count').textContent =
+                `${data.folder_count} folders, ${data.file_count} files`;
+
+            // Update stats sections for current folder
+            renderStats(data);
+            loadExtensions(data.path);
+            loadTopFiles(data.path);
+        }
+
+        // Breadcrumb
+        function renderBreadcrumb(breadcrumbs) {
+            const container = document.getElementById('breadcrumb');
+
+            // Check if any breadcrumbs are outside cache
+            const hasOutsideCache = breadcrumbs.some(b => b.in_cache === false);
+
+            let html = breadcrumbs.map((b, i) => {
+                const isLast = i === breadcrumbs.length - 1;
+                const sep = i < breadcrumbs.length - 1 ? '<span class="breadcrumb-sep">/</span>' : '';
+
+                let cls = 'breadcrumb-item';
+                if (isLast) cls += ' current';
+                if (b.in_cache === false) cls += ' outside-cache';
+
+                return `<span class="${cls}" onclick="navigateTo('${b.path}')" title="${b.path}">${b.name}</span>${sep}`;
+            }).join('');
+
+            // Add hint if showing outside-cache paths
+            if (hasOutsideCache) {
+                html += '<span class="breadcrumb-rescan-hint">⚡ Click to scan parent folder</span>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Pie Chart
+        function renderPieChart(items) {
+            const container = document.getElementById('chart-container');
+            container.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div>Empty folder</div>';
+                return;
+            }
+
+            const width = 360;
+            const height = 360;
+            const radius = Math.min(width, height) / 2 - 10;
+
+            // Create SVG with defs for patterns
+            const svg = d3.select(container)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Add stripe pattern for files
+            const defs = svg.append('defs');
+
+            // Create a stripe pattern for each file color
+            items.forEach((item, i) => {
+                if (!item.is_dir) {
+                    const pattern = defs.append('pattern')
+                        .attr('id', `stripe-${i}`)
+                        .attr('patternUnits', 'userSpaceOnUse')
+                        .attr('width', 6)
+                        .attr('height', 6)
+                        .attr('patternTransform', 'rotate(45)');
+
+                    pattern.append('rect')
+                        .attr('width', 6)
+                        .attr('height', 6)
+                        .attr('fill', item.color);
+
+                    pattern.append('line')
+                        .attr('x1', 0)
+                        .attr('y1', 0)
+                        .attr('x2', 0)
+                        .attr('y2', 6)
+                        .attr('stroke', 'rgba(0,0,0,0.3)')
+                        .attr('stroke-width', 2);
+                }
+            });
+
+            const g = svg.append('g')
+                .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+            const pie = d3.pie()
+                .value(d => d.size)
+                .sort(null);
+
+            const arc = d3.arc()
+                .innerRadius(radius * 0.4)
+                .outerRadius(radius);
+
+            const hoverArc = d3.arc()
+                .innerRadius(radius * 0.4)
+                .outerRadius(radius + 10);
+
+            const slices = g.selectAll('path')
+                .data(pie(items))
+                .enter()
+                .append('path')
+                .attr('d', arc)
+                .attr('fill', (d, i) => d.data.is_dir ? d.data.color : `url(#stripe-${i})`)
+                .attr('class', d => `pie-slice ${d.data.is_dir ? 'folder' : 'file'}`)
+                .attr('stroke', 'var(--bg-primary)')
+                .attr('stroke-width', 2)
+                .on('mouseover', function (event, d) {
+                    if (d.data.is_dir) {
+                        d3.select(this).attr('d', hoverArc);
+                    }
+                    showTooltip(event, d.data);
+                })
+                .on('mousemove', function (event) {
+                    moveTooltip(event);
+                })
+                .on('mouseout', function (event, d) {
+                    d3.select(this).attr('d', arc);
+                    hideTooltip();
+                })
+                .on('click', function (event, d) {
+                    if (d.data.is_dir) {
+                        navigateTo(d.data.path);
+                    }
+                });
+
+            // Animate in
+            slices.transition()
+                .duration(500)
+                .attrTween('d', function (d) {
+                    const i = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
+                    return t => arc(i(t));
+                });
+
+            // Center text
+            g.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '-0.5em')
+                .attr('fill', 'var(--text-secondary)')
+                .attr('font-size', '12px')
+                .text('Total');
+
+            g.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '1em')
+                .attr('fill', 'var(--accent-cyan)')
+                .attr('font-size', '20px')
+                .attr('font-weight', 'bold')
+                .text(currentData.total_size_human);
+
+            // Add legend below chart
+            const folderCount = items.filter(i => i.is_dir).length;
+            const fileCount = items.filter(i => !i.is_dir).length;
+
+            const legendHtml = `
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-folder"></div>
+                        <span>📁 Folders (${folderCount}) - Click to explore</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-file"></div>
+                        <span>📄 Files (${fileCount})</span>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', legendHtml);
+        }
+
+        // Items List
+        const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.ico', '.svg'];
+        const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+        const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.flac', '.aac', '.ogg'];
+        const DOC_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt'];
+        const CODE_EXTENSIONS = ['.js', '.py', '.html', '.css', '.json', '.ts', '.jsx', '.tsx', '.java', '.c', '.cpp'];
+
+        function getFileExtension(filename) {
+            const idx = filename.lastIndexOf('.');
+            return idx !== -1 ? filename.substring(idx).toLowerCase() : '';
+        }
+
+        function isImageFile(filename) {
+            return IMAGE_EXTENSIONS.includes(getFileExtension(filename));
+        }
+
+        function isVideoFile(filename) {
+            return VIDEO_EXTENSIONS.includes(getFileExtension(filename));
+        }
+
+        function getFileIcon(item) {
+            if (item.is_dir) return '📁';
+
+            const ext = getFileExtension(item.name);
+
+            if (VIDEO_EXTENSIONS.includes(ext)) return '🎬';
+            if (AUDIO_EXTENSIONS.includes(ext)) return '🎵';
+            if (DOC_EXTENSIONS.includes(ext)) return '📄';
+            if (CODE_EXTENSIONS.includes(ext)) return '💻';
+            if (ext === '.zip' || ext === '.rar' || ext === '.7z') return '📦';
+            if (ext === '.psd' || ext === '.ai' || ext === '.sketch') return '🎨';
+
+            return '📄';
+        }
+
+        function renderItemsList(items) {
+            const container = document.getElementById('items-list');
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div>Empty folder</div>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                let iconHtml;
+                const canPreview = isImageFile(item.name) || isVideoFile(item.name);
+                const previewType = isImageFile(item.name) ? 'image' : (isVideoFile(item.name) ? 'video' : null);
+
+                if (isImageFile(item.name)) {
+                    // Show actual thumbnail for images - clickable for preview
+                    iconHtml = `<img class="item-thumbnail" src="/api/thumbnail?path=${encodeURIComponent(item.path)}" onclick="openPreview('${item.path.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', '${item.size_human}', 'image')" onerror="this.outerHTML='<div class=item-thumbnail-placeholder>🖼️</div>'" loading="lazy" alt="" style="cursor: pointer" title="Click to preview">`;
+                } else if (isVideoFile(item.name)) {
+                    // Show video icon - clickable for preview
+                    iconHtml = `<div class="item-thumbnail-placeholder" onclick="openPreview('${item.path.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', '${item.size_human}', 'video')" style="cursor: pointer" title="Click to preview">🎬</div>`;
+                } else {
+                    // Show icon for other files
+                    iconHtml = `<div class="item-thumbnail-placeholder">${getFileIcon(item)}</div>`;
+                }
+
+                const nameClick = item.is_dir
+                    ? `navigateTo('${item.path.replace(/'/g, "\\'")}')`
+                    : (canPreview ? `openPreview('${item.path.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', '${item.size_human}', '${previewType}')` : '');
+
+                return `
+                    <div class="item-row">
+                        <div class="item-color" style="background: ${item.color}"></div>
+                        ${iconHtml}
+                        <div class="item-info">
+                            <div class="item-name" onclick="${nameClick}" style="${canPreview || item.is_dir ? 'cursor: pointer' : ''}">${item.name}</div>
+                            <div class="item-meta">${item.size_human} • ${item.percentage}%</div>
+                        </div>
+                        <div class="item-actions">
+                            ${canPreview ? `<button class="item-action-btn" onclick="openPreview('${item.path.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', '${item.size_human}', '${previewType}')" title="Preview">👁️</button>` : ''}
+                            <button class="item-action-btn" onclick="openInFinder('${item.path.replace(/'/g, "\\'")}')" title="Open in Finder">📂</button>
+                            <button class="item-action-btn delete" onclick="confirmDelete('${item.path.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', '${item.size_human}', ${item.is_dir})" title="Move to Trash">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Media Preview
+        function openPreview(path, name, size, type) {
+            const overlay = document.getElementById('preview-overlay');
+            const content = document.getElementById('preview-content');
+            const filenameEl = document.getElementById('preview-filename');
+            const metaEl = document.getElementById('preview-meta');
+
+            filenameEl.textContent = name;
+            metaEl.textContent = size;
+
+            if (type === 'image') {
+                content.innerHTML = `<img class="preview-image" src="/api/media?path=${encodeURIComponent(path)}" alt="${name}">`;
+            } else if (type === 'video') {
+                content.innerHTML = `<video class="preview-video" controls autoplay><source src="/api/media?path=${encodeURIComponent(path)}">Your browser doesn't support video.</video>`;
+            }
+
+            overlay.classList.add('visible');
+
+            // Add ESC key listener
+            document.addEventListener('keydown', handlePreviewKeydown);
+        }
+
+        function closePreview(event) {
+            if (event && event.target.closest('.preview-content')) return;
+
+            const overlay = document.getElementById('preview-overlay');
+            const content = document.getElementById('preview-content');
+
+            // Stop video if playing
+            const video = content.querySelector('video');
+            if (video) video.pause();
+
+            overlay.classList.remove('visible');
+
+            // Remove ESC key listener
+            document.removeEventListener('keydown', handlePreviewKeydown);
+
+            // Clear content after animation
+            setTimeout(() => { content.innerHTML = ''; }, 300);
+        }
+
+        function handlePreviewKeydown(e) {
+            if (e.key === 'Escape') closePreview();
+        }
+
+        // Tooltip
+        function showTooltip(event, data) {
+            const tooltip = document.getElementById('tooltip');
+
+            // Type badge
+            const typeEl = tooltip.querySelector('.tooltip-type');
+            typeEl.textContent = data.is_dir ? '📁 FOLDER' : '📄 FILE';
+            typeEl.className = `tooltip-type ${data.is_dir ? 'folder' : 'file'}`;
+
+            tooltip.querySelector('.tooltip-name').textContent = data.name;
+            tooltip.querySelector('.tooltip-size').textContent = data.size_human;
+            tooltip.querySelector('.tooltip-percent').textContent = `${data.percentage}%`;
+
+            // Action hint
+            const hintEl = tooltip.querySelector('.tooltip-hint');
+            hintEl.textContent = data.is_dir ? '👆 Click to explore' : '💡 Use sidebar to open or delete';
+
+            tooltip.classList.add('visible');
+            moveTooltip(event);
+        }
+
+        function moveTooltip(event) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.style.left = event.pageX + 15 + 'px';
+            tooltip.style.top = event.pageY + 15 + 'px';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('visible');
+        }
+
+        // Navigation
+        async function navigateTo(path, isOutsideCache = false) {
+            // Check if this path is outside current cache
+            const scanRoot = currentData?.scan_root || '';
+            const needsRescan = !path.startsWith(scanRoot) || path.length < scanRoot.length;
+
+            // Show scanning overlay for paths that will trigger a rescan
+            if (needsRescan && scanRoot) {
+                showScanningOverlay(path);
+            }
+
+            try {
+                const data = await api(`/folder?path=${encodeURIComponent(path)}`);
+                hideScanningOverlay();
+
+                if (data && !data.error) {
+                    renderFolder(data);
+                    // Refresh stats after navigation to new scan root
+                    if (needsRescan) {
+                        loadStats();
+                        loadExtensions();
+                        loadTopFiles();
+                    }
+                }
+            } catch (error) {
+                hideScanningOverlay();
+                console.error('Navigation error:', error);
+            }
+        }
+
+        // Scanning overlay with funny time-based messages (like CLI)
+        const SCANNING_MESSAGES = [
+            { time: 0, msg: "Starting up... 🚀" },
+            { time: 3, msg: "Counting your files... 🧛" },
+            { time: 6, msg: "Still working... 😊" },
+            { time: 10, msg: "This folder is bigger than expected..." },
+            { time: 15, msg: "Wow, you really have a lot of stuff..." },
+            { time: 20, msg: "Did you ever delete anything? 🤔" },
+            { time: 30, msg: "I've seen smaller hard disks..." },
+            { time: 45, msg: "Making coffee while we wait... ☕" },
+            { time: 60, msg: "Maybe time for a snack break? 🍕" },
+            { time: 90, msg: "I'm not stuck, it's just... you have too many files! 😅" },
+            { time: 120, msg: "Still going... you might want to sit down 🪑" },
+            { time: 180, msg: "This is taking forever. Literally. ⏳" },
+            { time: 300, msg: "I'm starting to question my life choices... 🤷" },
+            { time: 600, msg: "We're still friends, right? 🥺" }
+        ];
+
+        let scanningStartTime = null;
+        let scanningInterval = null;
+
+        function showScanningOverlay(path) {
+            document.getElementById('scanning-path').textContent = path;
+            document.getElementById('scanning-overlay').classList.add('visible');
+
+            // Start timer for messages
+            scanningStartTime = Date.now();
+            updateScanningMessage();
+            scanningInterval = setInterval(updateScanningMessage, 1000);
+        }
+
+        function updateScanningMessage() {
+            if (!scanningStartTime) return;
+
+            const elapsed = Math.floor((Date.now() - scanningStartTime) / 1000);
+
+            // Find appropriate message
+            let message = SCANNING_MESSAGES[0].msg;
+            for (const m of SCANNING_MESSAGES) {
+                if (elapsed >= m.time) message = m.msg;
+            }
+
+            const titleEl = document.getElementById('scanning-overlay').querySelector('.scanning-title');
+            titleEl.textContent = message;
+
+            // Update hint with time
+            const hintEl = document.getElementById('scanning-overlay').querySelector('.scanning-hint');
+            if (elapsed >= 90) {
+                const mins = Math.floor(elapsed / 60);
+                const secs = elapsed % 60;
+                hintEl.textContent = `⏱️ ${mins}m ${secs}s elapsed`;
+                hintEl.style.color = 'var(--accent-yellow)';
+            } else if (elapsed >= 10) {
+                hintEl.textContent = `⏱️ ${elapsed}s elapsed`;
+                hintEl.style.color = '';
+            } else {
+                hintEl.textContent = 'This may take a moment for large directories';
+                hintEl.style.color = '';
+            }
+        }
+
+        function hideScanningOverlay() {
+            document.getElementById('scanning-overlay').classList.remove('visible');
+
+            // Reset and clear timer
+            if (scanningInterval) {
+                clearInterval(scanningInterval);
+                scanningInterval = null;
+            }
+            scanningStartTime = null;
+
+            // Reset title
+            const titleEl = document.getElementById('scanning-overlay').querySelector('.scanning-title');
+            titleEl.textContent = 'Scanning Directory...';
+        }
+
+        function goUp() {
+            if (currentData && currentData.parent) {
+                navigateTo(currentData.parent);
+            }
+        }
+
+        async function goHome() {
+            showScanningOverlay('Scan root');
+            const stats = await api('/stats');
+            hideScanningOverlay();
+
+            if (stats && stats.scan_root) {
+                navigateTo(stats.scan_root);
+            }
+        }
+
+        // Actions
+        async function openInFinder(path) {
+            await api('/open', {
+                method: 'POST',
+                body: JSON.stringify({ path })
+            });
+        }
+
+        async function rescan() {
+            showScanningOverlay('Rescanning ' + (currentData?.scan_root || currentPath));
+
+            const result = await api('/rescan', {
+                method: 'POST',
+                body: JSON.stringify({ path: currentData?.scan_root || currentPath })
+            });
+
+            hideScanningOverlay();
+
+            if (result.success) {
+                // Reload current view
+                navigateTo(currentPath);
+            }
+        }
+
+        // Delete confirmation
+        function confirmDelete(path, name, size, isDir) {
+            const typeText = isDir ? 'folder' : 'file';
+            showModal(
+                '🗑️ Confirm Delete',
+                `
+                <div class="delete-info">
+                    <div class="delete-name">${isDir ? '📁' : '📄'} ${name}</div>
+                    <div class="delete-meta">Size: ${size}</div>
+                </div>
+                <div class="delete-warning">
+                    ⚠️ This will move the ${typeText} to your Trash (can be restored)
+                </div>
+                `,
+                `
+                <button class="toolbar-btn" onclick="closeModal()">Cancel</button>
+                <button class="toolbar-btn danger" onclick="executeDelete('${path}')">🗑️ Move to Trash</button>
+                `
+            );
+        }
+
+        async function executeDelete(path) {
+            const result = await api('/delete', {
+                method: 'POST',
+                body: JSON.stringify({ path })
+            });
+
+            closeModal();
+
+            if (result.success) {
+                // Refresh current folder
+                navigateTo(currentPath);
+            } else {
+                alert('Delete failed: ' + result.message);
+            }
+        }
+
+        // Search
+        function showSearch() {
+            showModal(
+                '🔍 Search Files',
+                `
+                <div class="search-container">
+                    <input type="text" class="search-input" id="search-input" placeholder="Enter filename to search..." onkeyup="if(event.key === 'Enter') executeSearch()">
+                </div>
+                <div class="search-results" id="search-results"></div>
+                `,
+                `
+                <button class="toolbar-btn" onclick="closeModal()">Close</button>
+                <button class="toolbar-btn primary" onclick="executeSearch()">Search</button>
+                `
+            );
+            setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+        }
+
+        async function executeSearch() {
+            const query = document.getElementById('search-input').value;
+            if (!query) return;
+
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<div class="loading"><span class="spinner"></span>Searching...</div>';
+
+            const results = await api(`/search?q=${encodeURIComponent(query)}`);
+
+            if (results.length === 0) {
+                container.innerHTML = '<div class="empty-state">No results found</div>';
+                return;
+            }
+
+            container.innerHTML = results.map(r => `
+                <div class="item-row">
+                    <span class="item-icon">${r.is_dir ? '📁' : '📄'}</span>
+                    <div class="item-info">
+                        <div class="item-name" onclick="closeModal(); navigateTo('${r.is_dir ? r.path : r.path.substring(0, r.path.lastIndexOf('/'))}')">${r.name}</div>
+                        <div class="item-meta">${r.size_human} • ${r.relative_path}</div>
+                    </div>
+                    <button class="item-action-btn" onclick="openInFinder('${r.path}')">📂</button>
+                </div>
+            `).join('');
+        }
+
+        // Duplicates
+        async function showDuplicates() {
+            showScanningOverlay('Analyzing files for duplicates...');
+
+            const dups = await api('/duplicates');
+
+            hideScanningOverlay();
+
+            if (dups.length === 0) {
+                showModal('📋 Duplicates', '<div class="empty-state"><div class="empty-state-icon">✨</div>No duplicate files found!</div>', '<button class="toolbar-btn" onclick="closeModal()">Close</button>');
+                return;
+            }
+
+            const totalWasted = dups.reduce((sum, d) => sum + d.wasted_space, 0);
+
+            document.getElementById('modal-title').textContent = `📋 Duplicates (${dups.length} groups)`;
+            document.getElementById('modal-body').innerHTML = `
+                <div style="margin-bottom: 16px; color: var(--accent-red);">
+                    Total wasted space: ${formatBytes(totalWasted)}
+                </div>
+                ${dups.slice(0, 20).map(d => `
+                    <div class="dup-group">
+                        <div class="dup-group-header">
+                            <span class="dup-group-title">${d.files[0].name} (${d.file_size_human})</span>
+                            <span class="dup-wasted">Wasted: ${d.wasted_space_human}</span>
+                        </div>
+                        ${d.files.map(f => `
+                            <div class="dup-file">
+                                <span class="dup-file-path" title="${f.path}">${f.dir}</span>
+                                <button class="item-action-btn" onclick="openInFinder('${f.path}')">📂</button>
+                                <button class="item-action-btn delete" onclick="confirmDelete('${f.path}', '${f.name}', '${d.file_size_human}', false)">🗑️</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('')}
+            `;
+            document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
+        }
+
+        // Cache Cleaner
+        async function showCacheCleaner() {
+            showModal('🧹 Loading Cache Folders...', '<div class="loading"><span class="spinner"></span>Scanning system caches...</div>', '');
+
+            const folders = await api('/cache-folders');
+
+            if (folders.length === 0) {
+                document.getElementById('modal-body').innerHTML = '<div class="empty-state">No cache folders found</div>';
+                document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
+                document.getElementById('modal-title').textContent = '🧹 Cache Cleaner';
+                return;
+            }
+
+            const totalSize = folders.reduce((sum, f) => sum + f.size, 0);
+
+            document.getElementById('modal-title').textContent = `🧹 Cache Cleaner (${formatBytes(totalSize)})`;
+            document.getElementById('modal-body').innerHTML = folders.map(f => `
+                <div class="cache-folder">
+                    <div class="cache-folder-info">
+                        <div class="cache-folder-name">${f.name}</div>
+                        <div class="cache-folder-desc">${f.description}</div>
+                    </div>
+                    <div class="cache-folder-size">${f.size_human}</div>
+                    <button class="item-action-btn" onclick="openInFinder('${f.path}')">📂</button>
+                    ${f.clearable ? `<button class="item-action-btn delete" onclick="clearCache('${f.path}', '${f.name}')">🗑️</button>` : ''}
+                </div>
+            `).join('');
+            document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
+        }
+
+        async function clearCache(path, name) {
+            if (!confirm(`Clear all contents of ${name}?`)) return;
+
+            const result = await api('/clear-cache', {
+                method: 'POST',
+                body: JSON.stringify({ path })
+            });
+
+            if (result.success) {
+                alert(`Cleared! Freed ${result.freed_human}`);
+                showCacheCleaner(); // Refresh
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        // Top Files modal
+        async function showTopFiles() {
+            showModal('📊 Loading Top Files...', '<div class="loading"><span class="spinner"></span>Finding largest files...</div>', '');
+
+            const files = await api('/largest?limit=50');
+
+            document.getElementById('modal-title').textContent = '📊 Top 50 Largest Files';
+            document.getElementById('modal-body').innerHTML = files.map((f, i) => `
+                <div class="top-file-row">
+                    <div class="top-file-rank">${i + 1}</div>
+                    <div class="top-file-info">
+                        <div class="top-file-name">${f.name}</div>
+                        <div class="top-file-path">${f.relative_path}</div>
+                    </div>
+                    <span class="top-file-size">${f.size_human}</span>
+                    <button class="item-action-btn" onclick="openInFinder('${f.path}')">📂</button>
+                    <button class="item-action-btn delete" onclick="confirmDelete('${f.path}', '${f.name}', '${f.size_human}', false)">🗑️</button>
+                </div>
+            `).join('');
+            document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
+        }
+
+        // Load stats - can use folder data or fetch global
+        function renderStats(folderData) {
+            // Use current folder data
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-value">${folderData.total_size_human}</div>
+                    <div class="stat-label">Folder Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📄</div>
+                    <div class="stat-value">${folderData.file_count.toLocaleString()}</div>
+                    <div class="stat-label">Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📁</div>
+                    <div class="stat-value">${folderData.folder_count.toLocaleString()}</div>
+                    <div class="stat-label">Folders</div>
+                </div>
+            `;
+        }
+
+        async function loadStats() {
+            // This is for initial load - will be overwritten by renderStats when folder loads
+            const stats = await api('/stats');
+            if (!stats || stats.error) return;
+
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-value">${stats.total_size_human}</div>
+                    <div class="stat-label">Scan Root Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📄</div>
+                    <div class="stat-value">${stats.file_count.toLocaleString()}</div>
+                    <div class="stat-label">Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📁</div>
+                    <div class="stat-value">${stats.folder_count.toLocaleString()}</div>
+                    <div class="stat-label">Folders</div>
+                </div>
+            `;
+        }
+
+        // Load extensions
+        async function loadExtensions(folderPath = null) {
+            const pathParam = folderPath ? `?path=${encodeURIComponent(folderPath)}` : '';
+            const exts = await api(`/extensions${pathParam}`);
+            const container = document.getElementById('extensions-chart');
+
+            if (!exts || exts.length === 0) {
+                container.innerHTML = '<div class="empty-state">No data</div>';
+                return;
+            }
+
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#7BC225'];
+
+            container.innerHTML = exts.slice(0, 7).map((e, i) => `
+                <div class="ext-bar">
+                    <span class="ext-name">${e.extension}</span>
+                    <div class="ext-bar-container">
+                        <div class="ext-bar-fill" style="width: ${e.percentage}%; background: ${colors[i % colors.length]}"></div>
+                    </div>
+                    <span class="ext-size">${e.size_human}</span>
+                </div>
+            `).join('');
+        }
+
+        // Load top files
+        async function loadTopFiles(folderPath = null) {
+            const pathParam = folderPath ? `path=${encodeURIComponent(folderPath)}&` : '';
+            const files = await api(`/largest?${pathParam}limit=5`);
+            const container = document.getElementById('top-files-list');
+
+            if (!files || files.length === 0) {
+                container.innerHTML = '<div class="empty-state">No files</div>';
+                return;
+            }
+
+            container.innerHTML = files.map((f, i) => `
+                <div class="top-file-row">
+                    <div class="top-file-rank">${i + 1}</div>
+                    <div class="top-file-info">
+                        <div class="top-file-name">${f.name}</div>
+                        <div class="top-file-path">${f.relative_path}</div>
+                    </div>
+                    <span class="top-file-size">${f.size_human}</span>
+                </div>
+            `).join('');
+        }
+
+        // Modal helpers
+        function showModal(title, body, footer) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = body;
+            document.getElementById('modal-footer').innerHTML = footer;
+            document.getElementById('modal-overlay').classList.add('visible');
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modal-overlay').classList.remove('visible');
+        }
+
+        // Utility
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Backspace' && !e.target.matches('input')) {
+                e.preventDefault();
+                goUp();
+            }
+        });
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>

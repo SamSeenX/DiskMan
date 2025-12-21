@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-System cache detection for DiskMan V2.
+System cache detection for DiskMan V3.
 Detects common cache/temp folders based on OS.
 """
 import os

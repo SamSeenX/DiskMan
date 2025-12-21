@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-File operations for DiskMan V2.
+File operations for DiskMan V3.
 """
 import os
 import shutil
