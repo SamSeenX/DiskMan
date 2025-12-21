@@ -468,6 +468,12 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         path = parsed.path
         params = parse_qs(parsed.query)
         
+        # Handle favicon request (browsers auto-request this)
+        if path == '/favicon.ico':
+            self.send_response(204)  # No content
+            self.end_headers()
+            return
+        
         # API endpoints
         if path == '/api/folder':
             folder_path = params.get('path', [_current_dir or os.path.expanduser('~')])[0]

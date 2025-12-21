@@ -19,17 +19,17 @@
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="src/Screenshot-Welcome.png" alt="Welcome Screen" width="80%"/>
+  <img src="src/Screenshot-Welcome.webp" alt="Welcome Screen" width="80%"/>
 </p>
 <p align="center"><em>Welcome Screen - Start scanning with a simple command</em></p>
 
 <p align="center">
-  <img src="src/Screenshot-CLI.png" alt="CLI Interface" width="80%"/>
+  <img src="src/Screenshot-CLI.webp" alt="CLI Interface" width="80%"/>
 </p>
 <p align="center"><em>CLI Interface - Navigate, search, and manage your files</em></p>
 
 <p align="center">
-  <img src="src/Screenshot-webUI.png" alt="Web Dashboard" width="80%"/>
+  <img src="src/Screenshot-webUI.webp" alt="Web Dashboard" width="80%"/>
 </p>
 <p align="center"><em>Web Dashboard - Interactive pie charts, file previews, and more!</em></p>
 

@@ -52,6 +52,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            min-height: 64px;
+            max-height: 64px;
         }
 
         .header-title {
@@ -72,6 +74,7 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .toolbar-btn {
@@ -86,6 +89,8 @@
             align-items: center;
             gap: 6px;
             transition: all var(--transition);
+            height: 36px;
+            box-sizing: border-box;
         }
 
         .toolbar-btn:hover {
@@ -109,6 +114,55 @@
 
         .toolbar-btn.danger:hover {
             background: rgba(248, 81, 73, 0.1);
+        }
+
+        /* Indicator dot inside button */
+        .indicator {
+            display: none;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-left: 4px;
+            flex-shrink: 0;
+        }
+
+        .indicator.ready {
+            display: inline-block;
+            background: var(--accent-green);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        #dup-indicator.indicator.loading {
+            display: inline-block !important;
+            width: 8px !important;
+            height: 8px !important;
+            background: transparent !important;
+            border: 1.5px solid var(--text-muted) !important;
+            border-top-color: var(--accent-cyan) !important;
+            animation: spin 0.8s linear infinite !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            margin-left: 6px !important;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Breadcrumb */
@@ -1053,9 +1107,11 @@
         <div class="toolbar">
             <button class="toolbar-btn primary" onclick="rescan()">🔄 Rescan</button>
             <button class="toolbar-btn" onclick="showSearch()">🔍 Search</button>
-            <button class="toolbar-btn" onclick="showDuplicates()">📋 Duplicates</button>
+            <button class="toolbar-btn" id="duplicates-btn" onclick="showDuplicates()">📋 Duplicates<span
+                    class="indicator" id="dup-indicator"></span></button>
             <button class="toolbar-btn" onclick="showCacheCleaner()">🧹 Clean</button>
             <button class="toolbar-btn" onclick="showTopFiles()">📊 Top Files</button>
+            <button class="toolbar-btn" onclick="exportCSV()">📋 Export</button>
             <button class="toolbar-btn" onclick="goHome()">🏠</button>
             <button class="toolbar-btn" onclick="goUp()">⬆️</button>
         </div>
@@ -1171,6 +1227,10 @@
         let currentPath = null;
         let currentData = null;
 
+        // Duplicates background calculation state
+        let duplicatesCache = {};  // {scanRoot: {data: [], calculating: false}}
+        let duplicatesCalculating = false;
+
         // API helpers
         async function api(endpoint, options = {}) {
             const response = await fetch(`/api${endpoint}`, {
@@ -1196,6 +1256,9 @@
             loadStats();
             loadExtensions();
             loadTopFiles();
+
+            // Start calculating duplicates in background
+            setTimeout(() => calculateDuplicatesInBackground(), 500);
         }
 
         // Render folder
@@ -1567,7 +1630,16 @@
                 document.body.style.cursor = '';
 
                 if (data && !data.error) {
+                    const oldScanRoot = currentData?.scan_root;
                     renderFolder(data);
+
+                    // If scan root changed, recalculate duplicates in background
+                    if (data.scan_root !== oldScanRoot) {
+                        setTimeout(() => calculateDuplicatesInBackground(), 500);
+                    } else {
+                        // Just update button state from cache
+                        updateDuplicatesButton(duplicatesCache[data.scan_root] ? 'ready' : '');
+                    }
                 }
             } catch (error) {
                 hideScanningOverlay();
@@ -1677,6 +1749,9 @@
         }
 
         async function rescan() {
+            // Clear duplicates cache when rescanning
+            clearDuplicatesCache();
+
             showScanningOverlay('Rescanning ' + (currentData?.scan_root || currentPath));
 
             const result = await api('/rescan', {
@@ -1689,6 +1764,8 @@
             if (result.success) {
                 // Reload current view
                 navigateTo(currentPath);
+                // Start duplicates calculation in background after rescan
+                setTimeout(() => calculateDuplicatesInBackground(), 500);
             }
         }
 
@@ -1773,23 +1850,77 @@
             `).join('');
         }
 
-        // Duplicates
+        // Duplicates - with background calculation and caching
+        function updateDuplicatesButton(status) {
+            const indicator = document.getElementById('dup-indicator');
+            if (!indicator) return;
+            indicator.classList.remove('loading', 'ready');
+            if (status === 'loading') {
+                indicator.classList.add('loading');
+            } else if (status === 'ready') {
+                indicator.classList.add('ready');
+            }
+        }
+
+        async function calculateDuplicatesInBackground() {
+            const scanRoot = currentData?.scan_root;
+            if (!scanRoot || duplicatesCalculating) return;
+
+            // Check if already cached for this scan root
+            if (duplicatesCache[scanRoot]) {
+                updateDuplicatesButton('ready');
+                return;
+            }
+
+            duplicatesCalculating = true;
+            updateDuplicatesButton('loading');
+
+            try {
+                const dups = await api('/duplicates');
+                duplicatesCache[scanRoot] = dups;
+                updateDuplicatesButton('ready');
+            } catch (error) {
+                console.error('Background duplicates calculation failed:', error);
+                updateDuplicatesButton('');
+            } finally {
+                duplicatesCalculating = false;
+            }
+        }
+
+        function clearDuplicatesCache() {
+            duplicatesCache = {};
+            updateDuplicatesButton('');
+        }
+
         async function showDuplicates() {
-            showScanningOverlay('Analyzing files for duplicates...');
+            const scanRoot = currentData?.scan_root;
 
-            const dups = await api('/duplicates');
+            // Check if already cached
+            let dups = duplicatesCache[scanRoot];
 
-            hideScanningOverlay();
+            if (!dups) {
+                // Not cached - show overlay and calculate
+                if (duplicatesCalculating) {
+                    // Show progress if already calculating
+                    showModal('📋 Calculating...', '<div class="loading"><span class="spinner"></span>Duplicates are being analyzed in the background. Please wait...</div>', '<button class="toolbar-btn" onclick="closeModal()">Close</button>');
+                    return;
+                }
 
-            if (dups.length === 0) {
+                showScanningOverlay('Analyzing files for duplicates...');
+                dups = await api('/duplicates');
+                duplicatesCache[scanRoot] = dups;
+                hideScanningOverlay();
+                updateDuplicatesButton('ready');
+            }
+
+            if (!dups || dups.length === 0) {
                 showModal('📋 Duplicates', '<div class="empty-state"><div class="empty-state-icon">✨</div>No duplicate files found!</div>', '<button class="toolbar-btn" onclick="closeModal()">Close</button>');
                 return;
             }
 
             const totalWasted = dups.reduce((sum, d) => sum + d.wasted_space, 0);
 
-            document.getElementById('modal-title').textContent = `📋 Duplicates (${dups.length} groups)`;
-            document.getElementById('modal-body').innerHTML = `
+            const bodyHtml = `
                 <div style="margin-bottom: 16px; color: var(--accent-red);">
                     Total wasted space: ${formatBytes(totalWasted)}
                 </div>
@@ -1809,7 +1940,8 @@
                     </div>
                 `).join('')}
             `;
-            document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
+
+            showModal(`📋 Duplicates (${dups.length} groups)`, bodyHtml, '<button class="toolbar-btn" onclick="closeModal()">Close</button>');
         }
 
         // Cache Cleaner
@@ -1878,6 +2010,41 @@
                 </div>
             `).join('');
             document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
+        }
+
+        // Export to CSV
+        function exportCSV() {
+            if (!currentData || !currentData.children) {
+                alert('No data to export');
+                return;
+            }
+
+            // Build CSV content
+            const headers = ['Name', 'Type', 'Size (bytes)', 'Size', 'Percentage', 'Path'];
+            const rows = currentData.children.map(item => [
+                item.name,
+                item.is_dir ? 'Folder' : 'File',
+                item.size,
+                item.size_human,
+                item.percentage + '%',
+                item.path
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+
+            // Create download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `diskman_export_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         // Load stats - can use folder data or fetch global

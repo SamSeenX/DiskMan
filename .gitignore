@@ -5,3 +5,5 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+/src/img/optimize_images.py
+/src/img/*

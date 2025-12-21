@@ -212,7 +212,7 @@ def show_help():
 
 
 def show_welcome_message():
-    """Display V2 welcome message."""
+    """Display V3 welcome message."""
     clear_screen()
     
     logo = f"""
@@ -222,7 +222,7 @@ def show_welcome_message():
   / / / / / ___/ //_/ /|_/ / __ `/ __ \\  
  / /_/ / (__  ) ,< / /  / / /_/ / / / /  
 /_____/_/____/_/|_/_/  /_/\\__,_/_/ /_/   
-                                    V2
+                                     V3
 {Style.RESET_ALL}"""
     
     print(logo)
@@ -231,6 +231,7 @@ def show_welcome_message():
     print(f"{Fore.GREEN}{Style.BRIGHT}{'═' * 60}{Style.RESET_ALL}")
     
     features = [
+        "🌐 Interactive web dashboard",
         "✨ Smart caching for instant navigation",
         "🔍 Filter and search files",
         "📊 Extension statistics",
@@ -239,7 +240,7 @@ def show_welcome_message():
         "📋 Export reports to CSV"
     ]
     
-    print(f"\n{Fore.WHITE}New in V2:{Style.RESET_ALL}")
+    print(f"\n{Fore.WHITE}Features:{Style.RESET_ALL}")
     for feature in features:
         print(f"  {Fore.GREEN}{feature}{Style.RESET_ALL}")
     
