@@ -56,7 +56,7 @@ git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3 install co
 ### Update Existing Installation
 
 ```bash
-cd ~/.diskman && git pull && echo "✓ Updated to latest version! Run: diskman"
+(cd ~/.diskman && git pull) && echo "✓ Updated to latest version! Run: diskman"
 ```
 
 Now just type `diskman` from anywhere!
