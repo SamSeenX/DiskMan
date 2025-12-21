@@ -7,7 +7,7 @@ import os
 import json
 import threading
 import webbrowser
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 import humanize
 
@@ -608,7 +608,7 @@ def start_dashboard(cache, current_dir=None, port=5001, open_browser=True):
     _cache = cache
     _current_dir = current_dir or cache.get_scan_root() or os.path.expanduser('~')
     
-    server = HTTPServer(('localhost', port), DashboardHandler)
+    server = ThreadingHTTPServer(('localhost', port), DashboardHandler)
     
     if open_browser:
         # Open browser after a short delay
