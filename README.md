@@ -50,7 +50,7 @@
 ### One-Liner Install (macOS/Linux)
 
 ```bash
-git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3 install colorama humanize send2trash && chmod +x ~/.diskman/DiskMan.py && sudo ln -sf ~/.diskman/DiskMan.py /usr/local/bin/diskman && echo "✓ Installed! Run: diskman"
+git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3 install -r ~/.diskman/requirements.txt && chmod +x ~/.diskman/DiskMan.py && sudo ln -sf ~/.diskman/DiskMan.py /usr/local/bin/diskman && echo "✓ Installed! Run: diskman"
 ```
 
 ### Update Existing Installation
@@ -69,7 +69,7 @@ git clone https://github.com/mrsamseen/DiskMan.git
 cd DiskMan
 
 # 2. Install dependencies
-pip3 install colorama humanize send2trash
+pip3 install -r requirements.txt
 
 # 3. Run directly
 python3 DiskMan.py

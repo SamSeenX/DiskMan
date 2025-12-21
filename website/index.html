@@ -58,18 +58,70 @@
                     and clean your system in seconds.</p>
 
                 <div class="hero-actions">
-                    <div class="code-block">
-                        <span>git clone https://github.com/MrSamSeen/DiskMan.git</span>
-                        <button class="copy-btn"
-                            onclick="navigator.clipboard.writeText('git clone https://github.com/MrSamSeen/DiskMan.git')">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                        </button>
+                    <div class="install-tabs">
+                        <button class="tab-btn active" onclick="switchTab('mac')">Mac / Linux</button>
+                        <button class="tab-btn" onclick="switchTab('other')">Windows</button>
                     </div>
+
+                    <div id="mac-content" class="tab-content active">
+                        <div class="code-block">
+                            <span id="mac-cmd">git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3
+                                install -r ~/.diskman/requirements.txt && chmod +x ~/.diskman/DiskMan.py && sudo ln -sf
+                                ~/.diskman/DiskMan.py /usr/local/bin/diskman && echo "✓ Installed! Run: diskman"</span>
+                            <button class="copy-btn" onclick="copyCmd('mac-cmd')">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="other-content" class="tab-content">
+                        <div class="code-block" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <span id="other-cmd">git clone https://github.com/mrsamseen/DiskMan.git
+                                cd DiskMan
+                                pip install -r requirements.txt
+                                python DiskMan.py</span>
+                            <button class="copy-btn" style="position: absolute; top: 12px; right: 12px;"
+                                onclick="copyCmd('other-cmd')">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <a href="https://github.com/MrSamSeen/DiskMan" target="_blank"
+                        style="font-size: 0.9rem; color: var(--text-tertiary); margin-top: -10px; border-bottom: 1px dotted var(--text-tertiary);">View
+                        full compilation instructions on GitHub &rarr;</a>
                 </div>
+
+                <script>
+                    function switchTab(platform) {
+                        // Update buttons
+                        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                        event.target.classList.add('active');
+
+                        // Update content
+                        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                        document.getElementById(`${platform}-content`).classList.add('active');
+                    }
+
+                    function copyCmd(elementId) {
+                        const text = document.getElementById(elementId).innerText;
+                        navigator.clipboard.writeText(text);
+
+                        // Visual feedback
+                        const btn = event.currentTarget;
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="#4ade80" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                        setTimeout(() => btn.innerHTML = originalHtml, 2000);
+                    }
+                </script>
             </div>
 
             <div class="hero-visual animate-in delay-2">
