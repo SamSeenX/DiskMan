@@ -53,6 +53,12 @@
 git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3 install colorama humanize send2trash && chmod +x ~/.diskman/DiskMan.py && sudo ln -sf ~/.diskman/DiskMan.py /usr/local/bin/diskman && echo "✓ Installed! Run: diskman"
 ```
 
+### Update Existing Installation
+
+```bash
+cd ~/.diskman && git pull && echo "✓ Updated to latest version!"
+```
+
 Now just type `diskman` from anywhere!
 
 ### Manual Install
