@@ -30,11 +30,39 @@ except ImportError:
 # Global variable to control the spinner
 spinner_running = False
 spinner_thread = None
+spinner_current_folder = ""
+spinner_folder_count = 0
+
+# Time-based sarcastic messages
+SPINNER_MESSAGES = [
+    (0, "Starting up..."),
+    (3, "Counting your files... 🧛"),
+    (6, "Still working... 😊"),
+    (10, "This folder is bigger than expected..."),
+    (15, "Wow, you really have a lot of stuff..."),
+    (20, "Did you ever delete anything? 🤔"),
+    (30, "I've seen smaller hard drives..."),
+    (45, "Making coffee while we wait..."),
+    (60, "Maybe time for a snack break?"),
+    (90, "I'm not stuck, you just have too many files! 🤔"),
+    (120, "Still going... you might want to sit down"),
+    (180, "This is taking forever. Literally."),
+    (300, "I'm starting to question my life choices..."),
+    (600, "We're still friends, right?"),
+]
+
+def update_spinner_folder(folder_path):
+    """Update the current folder being scanned."""
+    global spinner_current_folder, spinner_folder_count
+    spinner_current_folder = folder_path
+    spinner_folder_count += 1
 
 def start_spinner(message):
     """Start a spinner with a message."""
-    global spinner_running, spinner_thread
+    global spinner_running, spinner_thread, spinner_current_folder, spinner_folder_count
     spinner_running = True
+    spinner_current_folder = ""
+    spinner_folder_count = 0
     spinner_thread = threading.Thread(target=_show_spinner, args=(message,))
     spinner_thread.daemon = True
     spinner_thread.start()
@@ -42,31 +70,61 @@ def start_spinner(message):
 
 def stop_spinner():
     """Stop the spinner."""
-    global spinner_running, spinner_thread
+    global spinner_running, spinner_thread, spinner_folder_count
     if spinner_running:
         spinner_running = False
         if spinner_thread and spinner_thread.is_alive():
             spinner_thread.join(timeout=1.0)  # Add timeout to prevent hanging
+    spinner_folder_count = 0
 
 def _show_spinner(message):
-    """Display a spinner with a message while a task is running."""
-    global spinner_running
+    """Display a spinner with time-based messages and current folder."""
+    global spinner_running, spinner_current_folder, spinner_folder_count
     spinner_chars = itertools.cycle(['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'])
+    start_time = time.time()
+    last_message_idx = 0
 
     # Clear line and show initial message
-    sys.stdout.write('\r' + ' ' * 80)  # Clear line
-    sys.stdout.write(f"\r{Fore.CYAN}{message} {Fore.YELLOW}")
+    sys.stdout.write('\r' + ' ' * 100)
     sys.stdout.flush()
 
     while spinner_running:
         char = next(spinner_chars)
-        sys.stdout.write(f"\r{Fore.CYAN}{message} {Fore.YELLOW}{char}{Style.RESET_ALL}")
+        elapsed = time.time() - start_time
+        
+        # Get appropriate message based on elapsed time
+        current_message = message
+        for threshold, msg in SPINNER_MESSAGES:
+            if elapsed >= threshold:
+                current_message = msg
+        
+        # Get abbreviated folder name (last 25 chars)
+        folder_display = ""
+        if spinner_current_folder:
+            folder_name = os.path.basename(spinner_current_folder) or spinner_current_folder
+            if len(folder_name) > 25:
+                folder_name = "..." + folder_name[-22:]
+            folder_display = f" {Fore.WHITE}[{folder_name}]{Style.RESET_ALL}"
+        
+        # Build status line
+        count_display = f" {Fore.GREEN}({spinner_folder_count}){Style.RESET_ALL}" if spinner_folder_count > 0 else ""
+        time_display = f" {Fore.WHITE}{int(elapsed)}s{Style.RESET_ALL}" if elapsed > 5 else ""
+        
+        status = f"\r{Fore.CYAN}{current_message}{Style.RESET_ALL}{time_display}{folder_display}{count_display} {Fore.YELLOW}{char}{Style.RESET_ALL}"
+        
+        # Pad to clear previous content
+        sys.stdout.write('\r' + ' ' * 100)
+        sys.stdout.write(status)
         sys.stdout.flush()
         time.sleep(0.1)
 
     # Clear spinner when done
-    sys.stdout.write('\r' + ' ' * 80)
-    sys.stdout.write(f"\r{Fore.GREEN}✓ {message} completed!{Style.RESET_ALL}\n")
+    elapsed = time.time() - start_time
+    sys.stdout.write('\r' + ' ' * 100)
+    if elapsed > 10:
+        sys.stdout.write(f"\r{Fore.GREEN}✓ Done! Scanned {spinner_folder_count} folders in {elapsed:.1f}s{Style.RESET_ALL}\n")
+    else:
+        sys.stdout.write(f"\r{Fore.GREEN}✓ {message} completed!{Style.RESET_ALL}\n")
     sys.stdout.flush()
 
 def get_size(path):

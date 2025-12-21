@@ -6,7 +6,7 @@ Provides efficient caching with filtering, sorting, and analysis capabilities.
 import os
 import hashlib
 from datetime import datetime, timedelta
-from .utils import is_hidden, start_spinner, stop_spinner
+from .utils import is_hidden, start_spinner, stop_spinner, update_spinner_folder
 
 
 class DirectoryCache:
@@ -34,6 +34,9 @@ class DirectoryCache:
         
         try:
             for dirpath, dirnames, filenames in os.walk(self.scan_root):
+                # Update spinner with current folder
+                update_spinner_folder(dirpath)
+                
                 dir_contents[dirpath] = []
                 
                 for filename in filenames:

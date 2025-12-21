@@ -40,6 +40,7 @@ pip3 install colorama humanize send2trash
 
 # 3. Run directly
 python3 DiskMan.py
+./DiskMan
 
 # 4. (Optional) Make available system-wide
 chmod +x DiskMan.py
@@ -135,6 +136,12 @@ DiskMan/
 │   └── system_cache.py # Cache cleaner
 └── lib/              # Legacy V1 modules
 ```
+
+## ⚠️ Platform Compatibility
+
+> **Tested on:** Apple M1 MacBook (macOS)
+> 
+> Linux and Windows *should* work fine, but haven't been fully tested. If you encounter any issues on your platform, please [open an issue](https://github.com/mrsamseen/DiskMan/issues) and I'll look into it!
 
 ## ☕ Support
 

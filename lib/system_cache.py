@@ -128,6 +128,8 @@ def clear_folder(path, keep_folder=True):
         if not os.path.isdir(path):
             return False, "Not a directory", 0
         
+        start_spinner(f"Clearing {os.path.basename(path)}...")
+        
         bytes_freed = 0
         errors = []
         
@@ -143,9 +145,12 @@ def clear_folder(path, keep_folder=True):
             except (OSError, PermissionError) as e:
                 errors.append(f"{item}: {e}")
         
+        stop_spinner()
+        
         if errors:
             return True, f"Cleared with {len(errors)} errors", bytes_freed
         return True, "Cleared successfully", bytes_freed
     
     except Exception as e:
+        stop_spinner()
         return False, str(e), 0
