@@ -50,15 +50,21 @@ def get_folder_data(path, auto_rescan=True):
         # or if it's a parent of scan_root
         is_outside_cache = not path.startswith(scan_root) or len(path) < len(scan_root)
     
+    print(f"[web_server] get_folder_data: path={path}, scan_root={scan_root}, is_outside_cache={is_outside_cache}")
+    
     # If outside cache and auto_rescan is enabled, rescan from the new path
     if is_outside_cache and auto_rescan:
+        print(f"[web_server] Triggering rescan for outside-cache path...")
         _cache.scan_directory_tree(path)
         scan_root = path
     
     # Get items from cache
     items = _cache.get_directory(path)
+    print(f"[web_server] Cache lookup: items={'found' if items else 'NOT FOUND'}, count={len(items) if items else 0}")
+    
     if items is None:
-        # Not in cache - try scanning this specific path
+        # Not in cache - this shouldn't happen for subfolders, log it!
+        print(f"[web_server] WARNING: Path not in cache! This may trigger unnecessary rescan.")
         if auto_rescan:
             _cache.scan_directory_tree(path)
             items = _cache.get_directory(path)
@@ -195,7 +201,7 @@ def get_largest_files(folder_path=None, limit=20):
     if not _cache:
         return []
     
-    files = _cache.get_largest_files(dir_path=folder_path, limit=limit)
+    files = _cache.get_largest_files(dir_path=folder_path, limit=limit, show_progress=False)
     
     result = []
     for full_path, name, size, is_hidden, mtime, rel_path in files:
@@ -352,11 +358,14 @@ class DashboardHandler(SimpleHTTPRequestHandler):
     
     def send_json(self, data, status=200):
         """Send a JSON response."""
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
+        try:
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode())
+        except BrokenPipeError:
+            pass  # Client disconnected, ignore
     
     def send_error_json(self, message, status=400):
         """Send an error JSON response."""

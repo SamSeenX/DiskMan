@@ -1256,7 +1256,10 @@
             const container = document.getElementById('chart-container');
             container.innerHTML = '';
 
-            if (!items || items.length === 0) {
+            // Filter out items with zero size to avoid SVG path errors
+            const validItems = items ? items.filter(item => item.size > 0) : [];
+
+            if (validItems.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div>Empty folder</div>';
                 return;
             }
@@ -1275,7 +1278,7 @@
             const defs = svg.append('defs');
 
             // Create a stripe pattern for each file color
-            items.forEach((item, i) => {
+            validItems.forEach((item, i) => {
                 if (!item.is_dir) {
                     const pattern = defs.append('pattern')
                         .attr('id', `stripe-${i}`)
@@ -1315,7 +1318,7 @@
                 .outerRadius(radius + 10);
 
             const slices = g.selectAll('path')
-                .data(pie(items))
+                .data(pie(validItems))
                 .enter()
                 .append('path')
                 .attr('d', arc)
@@ -1337,10 +1340,12 @@
                     hideTooltip();
                 })
                 .on('click', function (event, d) {
+                    console.log('Pie slice clicked:', d.data.name, 'is_dir:', d.data.is_dir, 'path:', d.data.path);
                     if (d.data.is_dir) {
                         navigateTo(d.data.path);
                     }
-                });
+                })
+                .style('cursor', d => d.data.is_dir ? 'pointer' : 'default');
 
             // Animate in
             slices.transition()
@@ -1367,8 +1372,8 @@
                 .text(currentData.total_size_human);
 
             // Add legend below chart
-            const folderCount = items.filter(i => i.is_dir).length;
-            const fileCount = items.filter(i => !i.is_dir).length;
+            const folderCount = validItems.filter(i => i.is_dir).length;
+            const fileCount = validItems.filter(i => !i.is_dir).length;
 
             const legendHtml = `
                 <div class="chart-legend">
@@ -1544,30 +1549,36 @@
 
         // Navigation
         async function navigateTo(path, isOutsideCache = false) {
+            console.log('navigateTo called with path:', path);
+
             // Check if this path is outside current cache
             const scanRoot = currentData?.scan_root || '';
-            const needsRescan = !path.startsWith(scanRoot) || path.length < scanRoot.length;
+            const needsRescan = scanRoot && (!path.startsWith(scanRoot) || path.length < scanRoot.length);
+
+            console.log('scanRoot:', scanRoot, 'needsRescan:', needsRescan);
 
             // Show scanning overlay for paths that will trigger a rescan
-            if (needsRescan && scanRoot) {
+            if (needsRescan) {
                 showScanningOverlay(path);
+            } else {
+                // For cached paths, just show brief loading cursor
+                document.body.style.cursor = 'wait';
             }
 
             try {
+                console.log('Fetching folder data...');
                 const data = await api(`/folder?path=${encodeURIComponent(path)}`);
+                console.log('Got folder data:', data?.path, 'children:', data?.children?.length);
+
                 hideScanningOverlay();
+                document.body.style.cursor = '';
 
                 if (data && !data.error) {
                     renderFolder(data);
-                    // Refresh stats after navigation to new scan root
-                    if (needsRescan) {
-                        loadStats();
-                        loadExtensions();
-                        loadTopFiles();
-                    }
                 }
             } catch (error) {
                 hideScanningOverlay();
+                document.body.style.cursor = '';
                 console.error('Navigation error:', error);
             }
         }

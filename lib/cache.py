@@ -181,14 +181,16 @@ class DirectoryCache:
         return self.sort_mode
     
     def get_extension_stats(self, dir_path=None):
-        """Get breakdown of sizes by file extension."""
+        """Get breakdown of sizes by file extension.
+        This is now fast - just iterates through cached sizes dict.
+        """
         target = dir_path or self.scan_root
         if not target:
             return {}
         
         ext_sizes = {}
         for path, size in self.sizes.items():
-            if path.startswith(target) and os.path.isfile(path):
+            if path.startswith(target) and path not in self.cache:  # Not a directory
                 ext = os.path.splitext(path)[1].lower() or 'no extension'
                 ext_sizes[ext] = ext_sizes.get(ext, 0) + size
         
@@ -306,8 +308,13 @@ class DirectoryCache:
         stop_spinner()
         return results[:100]  # Limit to 100 results
     
-    def get_largest_files(self, dir_path=None, limit=50):
+    def get_largest_files(self, dir_path=None, limit=50, show_progress=True):
         """Get the largest files in the cached tree, sorted by size.
+        
+        Args:
+            dir_path: Directory to search (defaults to scan_root)
+            limit: Maximum number of results
+            show_progress: Whether to show CLI spinner (disable for web server)
         
         Returns list of tuples: (full_path, name, size, mtime, relative_path)
         """
@@ -315,16 +322,17 @@ class DirectoryCache:
         if not target:
             return []
         
-        start_spinner("Finding largest files...")
+        if show_progress:
+            start_spinner("Finding largest files...")
         
         results = []
         
-        # Get all files from cache
+        # Get all files from cache (use cache dict to avoid os.path.isdir calls)
         for path, size in self.sizes.items():
             if not path.startswith(target):
                 continue
-            # Only include files, not directories
-            if not os.path.isdir(path):
+            # Only include files, not directories (directories are keys in self.cache)
+            if path not in self.cache:
                 name = os.path.basename(path)
                 mtime = self.mtimes.get(path, 0)
                 is_hid = is_hidden(path)
@@ -334,7 +342,8 @@ class DirectoryCache:
         # Sort by size (largest first)
         results.sort(key=lambda x: x[2], reverse=True)
         
-        stop_spinner()
+        if show_progress:
+            stop_spinner()
         return results[:limit]
     
     def get_scan_root(self):
