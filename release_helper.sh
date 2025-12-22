@@ -16,6 +16,13 @@ if [ ! -z "$new_version" ] && [ "$new_version" != "$current_version" ]; then
     # Update Python file
     sed -i '' "s/__version__ = \"$current_version\"/__version__ = \"$new_version\"/" DiskMan.py
     
+    # Update setup.py if it exists
+    if [ -f "setup.py" ]; then
+        sed -i '' "s/version=\"$current_version\"/version=\"$new_version\"/" setup.py
+        echo "Updated setup.py version"
+        git add setup.py
+    fi
+    
     # Commit change
     git add DiskMan.py
     git commit -m "Bump version to $new_version"
@@ -24,7 +31,11 @@ fi
 
 # 3. Create Git Tag
 echo "Creating git tag v$current_version..."
-git tag "v$current_version"
+if git rev-parse "v$current_version" >/dev/null 2>&1; then
+    echo "Tag v$current_version already exists. Skipping tag creation."
+else
+    git tag "v$current_version"
+fi
 
 # 4. Push
 echo "Pushing to GitHub..."
