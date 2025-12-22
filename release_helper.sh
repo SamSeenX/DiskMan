@@ -57,16 +57,53 @@ echo "🔗 URL: $tarball_url"
 echo "🔑 SHA256: $sha256"
 echo ""
 echo "--------------------------------------------------------"
-echo "🚨  HOMEBREW UPDATE REMINDER  🚨"
+# 6. Update Homebrew Tap
+TAP_DIR="../homebrew-diskman"
+
 echo "--------------------------------------------------------"
-echo "You MUST now update your Homebrew Tap repository."
-echo ""
-echo "1. Go to your brew repo (e.g., ../homebrew-diskman)"
-echo "2. Edit 'diskman.rb'"
-echo "3. Update 'url' to: $tarball_url"
-echo "4. Update 'sha256' to: $sha256"
-echo "5. Commit and push that repo."
-echo ""
-echo "Command to copy SHA to clipboard:"
-echo "echo '$sha256' | pbcopy"
+if [ -d "$TAP_DIR" ]; then
+    echo "🔄 Found Homebrew Tap at $TAP_DIR. Automating update..."
+    
+    # Copy local formula to tap (ensures new structure/caveats are synced)
+    cp brew/diskman.rb "$TAP_DIR/diskman.rb"
+    
+    # Update URL and SHA256 in the target file
+    # Escape slashes in URL for sed
+    escaped_url=$(echo "$tarball_url" | sed 's/\//\\\//g')
+    
+    # Use sed to replace the specific lines
+    sed -i '' "s/url .*/url \"$escaped_url\"/" "$TAP_DIR/diskman.rb"
+    sed -i '' "s/sha256 .*/sha256 \"$sha256\"/" "$TAP_DIR/diskman.rb"
+    
+    echo "Updated diskman.rb with new URL and SHA256."
+    
+    # Commit and push
+    current_dir=$(pwd)
+    cd "$TAP_DIR" || exit
+    
+    echo "Committing and pushing to homebrew-diskman..."
+    git add diskman.rb
+    git commit -m "Update diskman to v$current_version"
+    git push
+    
+    cd "$current_dir" || exit
+    
+    echo ""
+    echo "✅ Homebrew Tap updated successfully!"
+    echo "👉 You can now run: brew upgrade diskman"
+
+else
+    echo "⚠️  Could not find ../homebrew-diskman. skipping auto-update."
+    echo ""
+    echo "🚨  MANUAL UPDATE REQUIRED  🚨"
+    echo "--------------------------------------------------------"
+    echo "1. Go to your brew repo"
+    echo "2. Edit 'diskman.rb'"
+    echo "3. Update 'url' to: $tarball_url"
+    echo "4. Update 'sha256' to: $sha256"
+    echo "5. Commit and push that repo."
+    echo ""
+    echo "Command to copy SHA to clipboard:"
+    echo "echo '$sha256' | pbcopy"
+fi
 echo "--------------------------------------------------------"
