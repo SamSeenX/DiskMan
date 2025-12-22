@@ -1,0 +1,2 @@
+include lib/static/*
+include lib/static/assets/*
