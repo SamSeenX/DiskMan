@@ -2156,11 +2156,12 @@
                 <div class="top-file-row">
                     <div class="top-file-rank">${i + 1}</div>
                     <div class="top-file-info">
-                        <div class="top-file-name">${f.name}</div>
-                        <div class="top-file-path">${f.relative_path}</div>
+                        <div class="top-file-name" title="${f.name}">${f.name}</div>
+                        <div class="top-file-path" title="${f.relative_path}">${f.relative_path}</div>
                     </div>
                     <span class="top-file-size">${f.size_human}</span>
                     <button class="item-action-btn" onclick="openInFinder('${f.path.replace(/'/g, "\\'")}')" title="Open in Finder">📂</button>
+                    <button class="item-action-btn delete" onclick="confirmDelete('${f.path.replace(/'/g, "\\'")}', '${f.name.replace(/'/g, "\\'")}', '${f.size_human}', false)" title="Move to Trash">🗑️</button>
                 </div>
             `).join('');
         }
