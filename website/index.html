@@ -96,9 +96,8 @@
 
                     <div id="mac-content" class="tab-content active">
                         <div class="code-block">
-                            <span id="mac-cmd">git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3
-                                install -r ~/.diskman/requirements.txt && chmod +x ~/.diskman/DiskMan.py && sudo ln -sf
-                                ~/.diskman/DiskMan.py /usr/local/bin/diskman && echo "✓ Installed! Run: diskman"</span>
+                            <span id="mac-cmd">git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && cd
+                                ~/.diskman && chmod +x install.sh && ./install.sh</span>
                             <button class="copy-btn" onclick="copyCmd('mac-cmd')">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -114,6 +113,8 @@
                             <pre id="other-cmd"
                                 style="margin: 0; font-family: inherit; white-space: pre-wrap; word-break: break-all; text-align: left;">git clone https://github.com/mrsamseen/DiskMan.git
 cd DiskMan
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python DiskMan.py</pre>
                             <button class="copy-btn" onclick="copyCmd('other-cmd')"

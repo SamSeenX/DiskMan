@@ -239,6 +239,27 @@
             .main-content {
                 grid-template-columns: 1fr;
             }
+
+            /* On mobile, reset to stacked items card */
+            .items-card {
+                position: static;
+                height: auto;
+                display: block;
+            }
+
+            /* On mobile, keep a max-height for the list so it doesn't takeover the whole scroll */
+            .items-list {
+                max-height: 600px;
+            }
+        }
+
+        /* Items Card (Desktop default) */
+        .items-card {
+            position: sticky;
+            top: 88px;
+            height: calc(100vh - 112px);
+            display: flex;
+            flex-direction: column;
         }
 
         /* Cards */
@@ -394,7 +415,9 @@
 
         /* Items List */
         .items-list {
-            max-height: 600px;
+            /* Desktop default: Fill available space */
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
         }
 
@@ -1161,7 +1184,8 @@
         </div>
 
         <!-- Right Column: Items List -->
-        <div class="card">
+        <!-- Right Column: Items List -->
+        <div class="card items-card">
             <div class="card-header">
                 <span>📂 Items</span>
                 <span id="item-count" style="color: var(--text-secondary); font-weight: normal;"></span>

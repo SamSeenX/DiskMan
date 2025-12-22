@@ -50,13 +50,13 @@
 ### One-Liner Install (macOS/Linux)
 
 ```bash
-git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && pip3 install -r ~/.diskman/requirements.txt && chmod +x ~/.diskman/DiskMan.py && sudo ln -sf ~/.diskman/DiskMan.py /usr/local/bin/diskman && echo "✓ Installed! Run: diskman"
+git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && cd ~/.diskman && chmod +x install.sh && ./install.sh
 ```
 
 ### Update Existing Installation
 
 ```bash
-(cd ~/.diskman && git reset --hard HEAD && git pull) && echo "✓ Updated to latest version! Run: diskman"
+(cd ~/.diskman && git reset --hard HEAD && git pull && chmod +x install.sh && ./install.sh) && echo "✓ Updated to latest version! Run: diskman"
 ```
 
 Now just type `diskman` from anywhere!
@@ -68,17 +68,14 @@ Now just type `diskman` from anywhere!
 git clone https://github.com/mrsamseen/DiskMan.git
 cd DiskMan
 
-# 2. Install dependencies
+# 2. Run the install script (Recommended)
+./install.sh
+
+# OR Manual Setup:
+python3 -m venv venv
+source venv/bin/activate
 pip3 install -r requirements.txt
-
-# 3. Run directly
 python3 DiskMan.py
-./DiskMan
-
-# 4. (Optional) Make available system-wide
-chmod +x DiskMan.py
-sudo ln -sf "$(pwd)/DiskMan.py" /usr/local/bin/diskman
-# Now run 'diskman' from anywhere!
 ```
 
 ### Windows
