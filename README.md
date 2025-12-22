@@ -49,8 +49,7 @@
 ### 🍺 Homebrew (Recommended)
 
 ```bash
-brew tap MrSamSeen/diskman
-brew install diskman
+brew install mrsamseen/diskman/diskman
 ```
 
 ## 📦 Other Methods
