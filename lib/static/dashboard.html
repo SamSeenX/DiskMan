@@ -1828,7 +1828,7 @@
                 // Refresh current folder
                 navigateTo(currentPath);
             } else {
-                alert('Delete failed: ' + result.message);
+                showModal('❌ Error', 'Delete failed: ' + result.message, '<button class="toolbar-btn" onclick="closeModal()">Close</button>');
             }
         }
 
@@ -1994,14 +1994,34 @@
                     </div>
                     <div class="cache-folder-size">${f.size_human}</div>
                     <button class="item-action-btn" onclick="openInFinder('${f.path}')">📂</button>
-                    ${f.clearable ? `<button class="item-action-btn delete" onclick="clearCache('${f.path}', '${f.name}')">🗑️</button>` : ''}
+                    ${f.clearable ? `<button class="item-action-btn delete" onclick="confirmClearCache('${f.path}', '${f.name}')">🗑️</button>` : ''}
                 </div>
             `).join('');
             document.getElementById('modal-footer').innerHTML = '<button class="toolbar-btn" onclick="closeModal()">Close</button>';
         }
 
-        async function clearCache(path, name) {
-            if (!confirm(`Clear all contents of ${name}?`)) return;
+        async function confirmClearCache(path, name) {
+            showModal(
+                '⚠️ Confirm Clear Cache',
+                `
+                <div class="delete-info">
+                    <div class="delete-name">🗑️ ${name}</div>
+                    <div class="delete-meta">Are you sure you want to clear all contents?</div>
+                </div>
+                <div class="delete-warning">
+                    ⚠️ This action cannot be undone.
+                </div>
+                `,
+                `
+                <button class="toolbar-btn" onclick="closeModal()">Cancel</button>
+                <button class="toolbar-btn danger" onclick="executeClearCache('${path}')">🗑️ Clear Cache</button>
+                `
+            );
+        }
+
+        async function executeClearCache(path) {
+            // Show loading state
+            showModal('🧹 Cleaning...', '<div class="loading"><span class="spinner"></span>Cleaning cache...</div>', '');
 
             const result = await api('/clear-cache', {
                 method: 'POST',
@@ -2009,10 +2029,9 @@
             });
 
             if (result.success) {
-                alert(`Cleared! Freed ${result.freed_human}`);
-                showCacheCleaner(); // Refresh
+                showModal('✅ Success', `Cleared! Freed ${result.freed_human}`, '<button class="toolbar-btn" onclick="showCacheCleaner()">OK</button>');
             } else {
-                alert('Error: ' + result.message);
+                showModal('❌ Error', 'Error: ' + result.message, '<button class="toolbar-btn" onclick="showCacheCleaner()">Close</button>');
             }
         }
 
@@ -2041,7 +2060,7 @@
         // Export to CSV
         function exportCSV() {
             if (!currentData || !currentData.children) {
-                alert('No data to export');
+                showModal('⚠️ Export', 'No data to export', '<button class="toolbar-btn" onclick="closeModal()">OK</button>');
                 return;
             }
 
