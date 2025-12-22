@@ -29,6 +29,20 @@ class Diskman < Formula
     virtualenv_install_with_resources
   end
 
+  def caveats
+    <<~EOS
+      ----------------------------------------------------------------------
+      🎉 DiskMan V3 Installed Successfully! 🎉
+      ----------------------------------------------------------------------
+      
+      🚀 To run DiskMan, just type:
+      
+        diskman
+
+      ----------------------------------------------------------------------
+    EOS
+  end
+
   test do
     system "#{bin}/diskman", "--help"
   end
