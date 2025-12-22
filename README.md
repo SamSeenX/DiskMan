@@ -83,7 +83,7 @@ python3 DiskMan.py
 ```powershell
 git clone https://github.com/mrsamseen/DiskMan.git
 cd DiskMan
-pip install colorama humanize send2trash
+pip install -r requirements.txt
 python DiskMan.py
 ```
 
