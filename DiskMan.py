@@ -10,7 +10,7 @@ import time
 import humanize
 from colorama import Fore, Style
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 
 # Import V2 modules
 from lib.utils import (
