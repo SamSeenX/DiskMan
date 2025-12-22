@@ -45,7 +45,16 @@
 - **Safe Deletion** - Move to Trash instead of permanent delete
 - **Export Reports** - CSV export for analysis
 
-## 🚀 Quick Install (System-wide)
+## 🚀 Quick Install (macOS)
+### 🍺 Homebrew (Recommended)
+
+```bash
+brew tap MrSamSeen/diskman
+brew install diskman
+```
+
+## 📦 Other Methods
+
 
 ### One-Liner Install (macOS/Linux)
 

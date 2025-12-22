@@ -10,6 +10,8 @@ import time
 import humanize
 from colorama import Fore, Style
 
+__version__ = "3.0.0"
+
 # Import V2 modules
 from lib.utils import (
     open_file_explorer, 
@@ -62,6 +64,13 @@ except ImportError:
 
 def main():
     """Main function for DiskMan V3."""
+    # Auto-update check
+    from lib.updater import check_for_updates
+    if check_for_updates():
+        # Optional: Auto-restart or exit?
+        # For now, we just notified the user. To be safe, we can wait a moment.
+        time.sleep(1)
+
     # Optimize terminal for best viewing experience
     terminal_type = detect_terminal()
     
