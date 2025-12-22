@@ -64,6 +64,13 @@ echo "--------------------------------------------------------"
 if [ -d "$TAP_DIR" ]; then
     echo "🔄 Found Homebrew Tap at $TAP_DIR. Automating update..."
     
+    # Ensure tap is up to date to avoid conflicts
+    current_dir=$(pwd)
+    cd "$TAP_DIR" || exit
+    echo "Pulling latest changes for Homebrew Tap..."
+    git pull
+    cd "$current_dir" || exit
+    
     # Copy local formula to tap (ensures new structure/caveats are synced)
     cp brew/diskman.rb "$TAP_DIR/diskman.rb"
     

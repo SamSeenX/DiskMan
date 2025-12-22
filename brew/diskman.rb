@@ -26,7 +26,16 @@ class Diskman < Formula
   end
 
   def install
-    virtualenv_install_with_resources
+    virtualenv_create(libexec, "python3.11")
+    
+    resource("colorama").stage { system libexec/"bin/python", "-m", "pip", "install", "." }
+    resource("humanize").stage { system libexec/"bin/python", "-m", "pip", "install", "." }
+    resource("send2trash").stage { system libexec/"bin/python", "-m", "pip", "install", "." }
+
+    # Install the main package
+    system libexec/"bin/python", "-m", "pip", "install", ".", "--no-deps", "--ignore-installed"
+
+    # Link the script
     bin.install_symlink libexec/"bin/diskman"
   end
 
