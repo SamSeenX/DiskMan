@@ -4,17 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DiskMan Features - Smart Visualizer, Duplicate Finder, and More</title>
+    <title>Price - DiskMan V3</title>
     <meta name="description"
-        content="Explore the powerful features of DiskMan: Interactive disk visualization, smart caching, duplicate detection, and large file analysis. CLI + Web UI.">
+        content="DiskMan is free and always will be. Support the development if you find it useful.">
 
-    <!-- Fonts & Styles -->
+    <!-- Open Graph / SEO -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DiskMan V3 - Free Forever">
+    <meta property="og:description"
+        content="DiskMan is free and open source.">
+    <meta property="og:image" content="assets/Screenshot-webUI.webp">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
+
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Favicon -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 </head>
@@ -30,8 +41,8 @@
                     </a>
                 </div>
                 <div class="nav-links">
-                    <a href="features.html" class="active">Features</a>
-                    <a href="price.html">Price</a>
+                    <a href="features.html">Features</a>
+                    <a href="price.html" class="active">Price</a>
                     <a href="help.html">Docs</a>
                     <a href="about.html">About</a>
                 </div>
@@ -47,75 +58,42 @@
         </div>
     </header>
 
-    <div class="container" style="padding-top: 140px; padding-bottom: 80px;">
-        <div class="section-header animate-in">
-            <h1>Packed with Power<br><span class="gradient-text">For Every User</span></h1>
-            <p>From CLI warriors to visual thinkers, DiskMan has you covered.</p>
-        </div>
-
-        <div class="grid features-grid animate-in delay-1">
-            <div class="card feature-card">
-                <div class="card-icon">📊</div>
-                <h3>Interactive Web Dashboard</h3>
-                <p>Launch a local web server (<code>diskman web</code>) to visualize your disk usage.
-                <ul style="margin-top: 1rem; padding-left: 1.2rem; color: var(--text-secondary);">
-                    <li>Drill down into folders visually</li>
-                    <li>Preview images/videos directly in browser</li>
-                    <li>Delete files with one click</li>
-                </ul>
+    <section class="hero" style="min-height: 80vh; display: flex; align-items: center;">
+        <div class="container">
+            <div class="animate-in">
+                <h1>It's Free.<br><span class="gradient-text">Forever.</span></h1>
+                <p style="max-width: 700px; margin-bottom: 3rem;">
+                    I built DiskMan because I needed it. I know how annoying it is to run out of space and not know why. 
+                    I want everyone to have valid tools to manage their digital life, without paywalls or subscriptions.
                 </p>
-            </div>
 
-            <div class="card feature-card">
-                <div class="card-icon">⚡️</div>
-                <h3>Smart Caching Engine</h3>
-                <p>DiskMan scans your drive once and caches the structure structure in memory.
-                    <br><br>
-                    This means you can calculate folder sizes, find duplicates, and search thousands of files
-                    <strong>instantly</strong> without rescanning.
-                </p>
-            </div>
-
-            <div class="card feature-card">
-                <div class="card-icon">👯</div>
-                <h3>Background Duplicate Finder</h3>
-                <p>The smartest duplicate finder you'll use.
-                <ul style="margin-top: 1rem; padding-left: 1.2rem; color: var(--text-secondary);">
-                    <li>Runs in the background without blocking UI</li>
-                    <li>Calculates based on file content (hash), not just name</li>
-                    <li>Smart selection to keep oldest/newest versions</li>
-                </ul>
-                </p>
-            </div>
-
-            <div class="card feature-card">
-                <div class="card-icon">🧹</div>
-                <h3>System Cleaner</h3>
-                <p>One-command cleanup for common junk locations:
-                <ul style="margin-top: 1rem; padding-left: 1.2rem; color: var(--text-secondary);">
-                    <li>User Cache (~/Library/Caches)</li>
-                    <li>Logs (~/Library/Logs)</li>
-                    <li>VS Code Cache & Extensions (Developer favorite)</li>
-                    <li>Safe Trash emptying</li>
-                </ul>
-                </p>
-            </div>
-
-            <div class="card feature-card">
-                <div class="card-icon">🔍</div>
-                <h3>Deep Search</h3>
-                <p>Find files instantly across your entire scanned directory tree. Filter by name, extension, or size.
-                    Faster than Spotlight for developer directories.</p>
-            </div>
-
-            <div class="card feature-card">
-                <div class="card-icon">💾</div>
-                <h3>Export & Reporting</h3>
-                <p>Need to audit your storage? Export your entire file hierarchy to CSV for analysis in Excel or Google
-                    Sheets.</p>
+                <div class="card" style="max-width: 600px; margin: 0 auto; text-align: left; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient);"></div>
+                    <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Is there a catch?</h3>
+                    <p style="font-size: 1rem; margin-bottom: 1.5rem;">
+                        No. There is no catch. You can download it, use it, and never pay a dime.
+                    </p>
+                    <p style="font-size: 1rem; margin-bottom: 1.5rem;">
+                        <i>However...</i> developing this takes time, effort, and a suspicious amount of caffeine. 
+                    </p>
+                    <p style="font-size: 1rem; margin-bottom: 2rem;">
+                         The people who donate are the ones keeping open source projects alive. They are the unsung heroes. The legends. 
+                         You <i>could</i> just use it for free without supporting the developer... and that's fine. 
+                         <span style="color: var(--text-tertiary); font-size: 0.9em;">(I mean, do you really want to be that person? Just kidding. Mostly.)</span>
+                    </p>
+                    
+                    <div style="text-align: center;">
+                        <a href="https://buymeacoffee.com/samseen" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 16px 48px;">
+                            <span style="font-size: 1.2em; margin-right: 8px;">☕</span> Buy Me a Coffee
+                        </a>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-tertiary);">
+                            Join the elite club of legends.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <footer>
         <div class="container">
