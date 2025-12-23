@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://diskman.netlify.app/sitemap.xml
+Sitemap: https://diskman.netlify.app/sitemap2.xml
