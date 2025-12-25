@@ -5,7 +5,7 @@ setup(
     version="3.0.4",
     description="DiskMan V3 - Enhanced Disk Space Analyzer",
     author="SamSeen",
-    url="https://github.com/MrSamSeen/DiskMan",
+    url="https://github.com/SamSeenX/DiskMan",
     packages=find_packages(),
     py_modules=["DiskMan"],
     install_requires=[

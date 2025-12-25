@@ -47,7 +47,7 @@ echo "--------------------------------------------------------"
 echo "⏳ Waiting for GitHub to register the tag..."
 sleep 2
 
-tarball_url="https://github.com/MrSamSeen/DiskMan/archive/refs/tags/v$current_version.tar.gz"
+tarball_url="https://github.com/SamSeenX/DiskMan/archive/refs/tags/v$current_version.tar.gz"
 echo "Downloading source for SHA calculation: $tarball_url"
 sha256=$(curl -sL "$tarball_url" | shasum -a 256 | awk '{print $1}')
 

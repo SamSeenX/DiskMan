@@ -194,4 +194,4 @@ MIT License - see LICENSE file for details.
 
 ---
 
-Created with ❤️ by [SamSeen](https://github.com/MrSamSeen/)
+Created with ❤️ by [SamSeen](https://github.com/SamSeenX/)

@@ -2,8 +2,8 @@ class Diskman < Formula
   include Language::Python::Virtualenv
 
   desc "DiskMan V3 - Enhanced Disk Space Analyzer"
-  homepage "https://github.com/MrSamSeen/DiskMan"
-  url "https://github.com/MrSamSeen/DiskMan/archive/refs/tags/v3.0.0.tar.gz"
+  homepage "https://github.com/SamSeenX/DiskMan"
+  url "https://github.com/SamSeenX/DiskMan/archive/refs/tags/v3.0.0.tar.gz"
   sha256 "e611a1fc9c373b10ce9fe0e4c0058628014a07883eaa98ce84cb41d4e8f841e2"
   license "MIT"
 
