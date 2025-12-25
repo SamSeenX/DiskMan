@@ -49,7 +49,7 @@
 ### 🍺 Homebrew (Recommended)
 
 ```bash
-brew install mrsamseen/diskman/diskman
+brew install SamSeenX/diskman/diskman
 ```
 
 ## 📦 Other Methods
@@ -58,7 +58,7 @@ brew install mrsamseen/diskman/diskman
 ### One-Liner Install (macOS/Linux)
 
 ```bash
-git clone https://github.com/mrsamseen/DiskMan.git ~/.diskman && cd ~/.diskman && chmod +x install.sh && ./install.sh
+git clone https://github.com/SamSeenX/DiskMan.git ~/.diskman && cd ~/.diskman && chmod +x install.sh && ./install.sh
 ```
 
 ### Update Existing Installation
@@ -73,7 +73,7 @@ Now just type `diskman` from anywhere!
 
 ```bash
 # 1. Clone
-git clone https://github.com/mrsamseen/DiskMan.git
+git clone https://github.com/SamSeenX/DiskMan.git
 cd DiskMan
 
 # 2. Run the install script (Recommended)
@@ -89,7 +89,7 @@ python3 DiskMan.py
 ### Windows
 
 ```powershell
-git clone https://github.com/mrsamseen/DiskMan.git
+git clone https://github.com/SamSeenX/DiskMan.git
 cd DiskMan
 pip install -r requirements.txt
 python DiskMan.py
@@ -180,7 +180,7 @@ DiskMan/
 
 > **Tested on:** Apple M1 MacBook (macOS)
 > 
-> Linux and Windows *should* work fine, but haven't been fully tested. If you encounter any issues on your platform, please [open an issue](https://github.com/mrsamseen/DiskMan/issues) and I'll look into it!
+> Linux and Windows *should* work fine, but haven't been fully tested. If you encounter any issues on your platform, please [open an issue](https://github.com/SamSeenX/DiskMan/issues) and I'll look into it!
 
 ## ☕ Support
 

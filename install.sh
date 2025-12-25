@@ -17,7 +17,7 @@ if [ -d "$INSTALL_DIR" ]; then
     cd "$INSTALL_DIR"
 else
     echo "❌ Error: Installation directory $INSTALL_DIR not found."
-    echo "   Please clone the repository first: git clone https://github.com/mrsamseen/DiskMan.git $INSTALL_DIR"
+    echo "   Please clone the repository first: git clone https://github.com/SamSeenX/DiskMan.git $INSTALL_DIR"
     exit 1
 fi
 
