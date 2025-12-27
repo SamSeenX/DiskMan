@@ -58,7 +58,7 @@ echo "🔑 SHA256: $sha256"
 echo ""
 echo "--------------------------------------------------------"
 # 6. Update Homebrew Tap
-TAP_DIR="../homebrew-diskman"
+TAP_DIR="../homebrew-apps"
 
 echo "--------------------------------------------------------"
 if [ -d "$TAP_DIR" ]; then
@@ -72,15 +72,17 @@ if [ -d "$TAP_DIR" ]; then
     cd "$current_dir" || exit
     
     # Copy local formula to tap (ensures new structure/caveats are synced)
-    cp brew/diskman.rb "$TAP_DIR/diskman.rb"
+    # Ensure Formula directory exists
+    mkdir -p "$TAP_DIR/Formula"
+    cp brew/diskman.rb "$TAP_DIR/Formula/diskman.rb"
     
     # Update URL and SHA256 in the target file
     # Escape slashes in URL for sed
     escaped_url=$(echo "$tarball_url" | sed 's/\//\\\//g')
     
     # Use sed to replace the specific lines
-    sed -i '' "s/url .*/url \"$escaped_url\"/" "$TAP_DIR/diskman.rb"
-    sed -i '' "s/sha256 .*/sha256 \"$sha256\"/" "$TAP_DIR/diskman.rb"
+    sed -i '' "s/url .*/url \"$escaped_url\"/" "$TAP_DIR/Formula/diskman.rb"
+    sed -i '' "s/sha256 .*/sha256 \"$sha256\"/" "$TAP_DIR/Formula/diskman.rb"
     
     echo "Updated diskman.rb with new URL and SHA256."
     
@@ -88,8 +90,8 @@ if [ -d "$TAP_DIR" ]; then
     current_dir=$(pwd)
     cd "$TAP_DIR" || exit
     
-    echo "Committing and pushing to homebrew-diskman..."
-    git add diskman.rb
+    echo "Committing and pushing to homebrew-apps..."
+    git add Formula/diskman.rb
     git commit -m "Update diskman to v$current_version"
     git push
     
@@ -100,7 +102,7 @@ if [ -d "$TAP_DIR" ]; then
     echo "👉 You can now run: brew upgrade diskman"
 
 else
-    echo "⚠️  Could not find ../homebrew-diskman. skipping auto-update."
+    echo "⚠️  Could not find ../homebrew-apps. Skipping auto-update."
     echo ""
     echo "🚨  MANUAL UPDATE REQUIRED  🚨"
     echo "--------------------------------------------------------"

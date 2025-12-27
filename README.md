@@ -49,7 +49,7 @@
 ### 🍺 Homebrew (Recommended)
 
 ```bash
-brew install SamSeenX/diskman/diskman
+brew install SamSeenX/apps/diskman
 ```
 
 ## 📦 Other Methods
