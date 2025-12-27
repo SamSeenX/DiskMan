@@ -220,9 +220,11 @@ def show_help():
     input(f"{Fore.CYAN}Press Enter to return...{Style.RESET_ALL}")
 
 
-def show_welcome_message():
-    """Display V3 welcome message."""
+def show_welcome_message(version=None, update_available=False):
+    """Display V3 welcome message with version and update status."""
     clear_screen()
+    
+    version_str = f"V{version}" if version else "V3"
     
     logo = f"""
 {Fore.CYAN}{Style.BRIGHT}
@@ -231,12 +233,20 @@ def show_welcome_message():
   / / / / / ___/ //_/ /|_/ / __ `/ __ \\  
  / /_/ / (__  ) ,< / /  / / /_/ / / / /  
 /_____/_/____/_/|_/_/  /_/\\__,_/_/ /_/   
-                                     V3
+                                    {version_str}
 {Style.RESET_ALL}"""
     
     print(logo)
     print(f"{Fore.GREEN}{Style.BRIGHT}{'═' * 60}{Style.RESET_ALL}")
-    print(f"{Fore.YELLOW}{Style.BRIGHT}{'DiskMan V3 - Enhanced Disk Space Analyzer':^60}{Style.RESET_ALL}")
+    
+    # Show version with optional update notification
+    title = f"DiskMan {version_str} - Enhanced Disk Space Analyzer"
+    print(f"{Fore.YELLOW}{Style.BRIGHT}{title:^60}{Style.RESET_ALL}")
+    
+    if update_available:
+        print(f"{Fore.GREEN}{Style.BRIGHT}{'─' * 60}{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}  🆕 Update available! Run: brew update && brew upgrade diskman{Style.RESET_ALL}")
+    
     print(f"{Fore.GREEN}{Style.BRIGHT}{'═' * 60}{Style.RESET_ALL}")
     
     features = [

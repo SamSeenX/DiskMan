@@ -76,10 +76,7 @@ def main():
 
     # Auto-update check
     from lib.updater import check_for_updates
-    if check_for_updates():
-        # Optional: Auto-restart or exit?
-        # For now, we just notified the user. To be safe, we can wait a moment.
-        time.sleep(1)
+    update_available = check_for_updates()
 
     # Optimize terminal for best viewing experience
     terminal_type = detect_terminal()
@@ -224,7 +221,7 @@ def main():
         if start_path:
             current_dir = start_path
         else:
-            current_dir = show_welcome_message()
+            current_dir = show_welcome_message(version=__version__, update_available=update_available)
     
     # State
     current_page = 0
