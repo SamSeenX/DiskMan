@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="diskman",
-    version="3.0.5",
+    version="3.0.6",
     description="DiskMan V3 - Enhanced Disk Space Analyzer",
     author="SamSeen",
     url="https://github.com/SamSeenX/DiskMan",
