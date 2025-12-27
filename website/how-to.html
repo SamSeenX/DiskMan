@@ -113,7 +113,7 @@
 
                         <h3 style="margin-top: 32px; margin-bottom: 16px;">Updating</h3>
                         <div class="code-block" style="width: 100%;">
-                            <span id="brew-update-cmd">brew upgrade SamSeenX/apps/diskman</span>
+                            <span id="brew-update-cmd">brew update && brew upgrade diskman</span>
                             <button class="copy-btn" onclick="copyCmd('brew-update-cmd')">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -122,6 +122,10 @@
                                 </svg>
                             </button>
                         </div>
+                        <p style="margin-top: 12px; font-size: 0.9em; color: var(--text-tertiary);">
+                            <code>brew update</code> fetches the latest formula, then <code>brew upgrade</code> installs
+                            it.
+                        </p>
                     </div>
 
                     <!-- Git Tab -->

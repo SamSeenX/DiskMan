@@ -52,6 +52,12 @@
 brew install SamSeenX/apps/diskman
 ```
 
+### Update via Homebrew
+
+```bash
+brew update && brew upgrade diskman
+```
+
 ## 📦 Other Methods
 
 

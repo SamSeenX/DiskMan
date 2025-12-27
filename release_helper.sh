@@ -99,7 +99,7 @@ if [ -d "$TAP_DIR" ]; then
     
     echo ""
     echo "✅ Homebrew Tap updated successfully!"
-    echo "👉 You can now run: brew upgrade diskman"
+    echo "👉 Users can now run: brew update && brew upgrade diskman"
 
 else
     echo "⚠️  Could not find ../homebrew-apps. Skipping auto-update."
