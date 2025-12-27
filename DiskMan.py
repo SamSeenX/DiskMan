@@ -81,6 +81,11 @@ def main():
         preferred_font_size=12
     )
 
+    # Version check
+    if len(sys.argv) > 1 and sys.argv[1] in ['-v', '--version', 'version']:
+        print(f"DiskMan V{__version__}")
+        return
+
     # Help/Usage check first
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', 'help', '?']:
         show_help()
@@ -89,6 +94,9 @@ def main():
     # Dynamic items per page
     display_settings = get_optimal_display_settings()
     items_per_page = 20
+    
+    # Initialize current_dir early (may be overridden by commands/welcome)
+    current_dir = os.getcwd()
 
     skip_welcome = False
 
