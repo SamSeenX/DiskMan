@@ -64,6 +64,16 @@ except ImportError:
 
 def main():
     """Main function for DiskMan V3."""
+    # Version check (must be first - before any output)
+    if len(sys.argv) > 1 and sys.argv[1] in ['-v', '--version', 'version']:
+        print(f"DiskMan V{__version__}")
+        return
+
+    # Help/Usage check
+    if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', 'help', '?']:
+        show_help()
+        return
+
     # Auto-update check
     from lib.updater import check_for_updates
     if check_for_updates():
@@ -80,16 +90,6 @@ def main():
         target_rows=45, 
         preferred_font_size=12
     )
-
-    # Version check
-    if len(sys.argv) > 1 and sys.argv[1] in ['-v', '--version', 'version']:
-        print(f"DiskMan V{__version__}")
-        return
-
-    # Help/Usage check first
-    if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', 'help', '?']:
-        show_help()
-        return
 
     # Dynamic items per page
     display_settings = get_optimal_display_settings()
