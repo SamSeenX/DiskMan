@@ -4,6 +4,7 @@ Enhanced UI for DiskMan V3.
 """
 import os
 import time
+import shutil
 import humanize
 from datetime import datetime
 from colorama import Fore, Style, Back
@@ -23,8 +24,10 @@ def display_directory(directory, items, page=0, items_per_page=20, is_cached=Fal
 
     clear_screen()
     
-    # Title bar - calculate widths carefully
-    width = 105
+    # Get terminal width dynamically (min 80, max 120 for readability)
+    term_width = shutil.get_terminal_size().columns
+    width = max(80, min(term_width, 120))
+    
     cache_icon = "●" if is_cached else "○"
     cache_color = Fore.GREEN if is_cached else Fore.YELLOW
     sort_char = sort_mode[0].upper()
@@ -40,7 +43,8 @@ def display_directory(directory, items, page=0, items_per_page=20, is_cached=Fal
     title_padding = width - 2 - len(title_content) - emoji_adjustment
     
     # Build path line (truncate if needed)
-    path_display = directory[:width-8] if len(directory) > width-8 else directory
+    max_path_len = width - 8
+    path_display = directory[:max_path_len] if len(directory) > max_path_len else directory
     path_padding = width - 5 - len(path_display) - 1  # -1 for 📁 emoji
     
     print(f"\n{Fore.CYAN}╔{'═' * (width-2)}╗{Style.RESET_ALL}")
@@ -113,7 +117,7 @@ def display_directory(directory, items, page=0, items_per_page=20, is_cached=Fal
               f"{size_color}{size_str:<12}{Style.RESET_ALL} {pct_color}{pct_str:<6}{Style.RESET_ALL} "
               f"{type_str:<8} {age_str}")
 
-    print(f"{Fore.BLUE}{'─' * 105}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'─' * width}{Style.RESET_ALL}")
     print(f"{Fore.CYAN}Total: {Fore.YELLOW}{humanize.naturalsize(total_size)}{Fore.CYAN} │ "
           f"Items: {Fore.WHITE}{total_items}{Fore.CYAN} │ "
           f"Page: {Fore.WHITE}{page + 1}/{total_pages or 1}{Style.RESET_ALL}")

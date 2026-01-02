@@ -81,12 +81,14 @@ def main():
     # Optimize terminal for best viewing experience
     terminal_type = detect_terminal()
     
+    # Disabled auto-resize - let user control terminal size
     # Try to set optimal terminal settings
-    opt_result = optimize_terminal_view(
-        target_cols=130, 
-        target_rows=45, 
-        preferred_font_size=12
-    )
+    # opt_result = optimize_terminal_view(
+    #     target_cols=130, 
+    #     target_rows=45, 
+    #     preferred_font_size=12
+    # )
+    opt_result = {'size_changed': False}  # Dummy result
 
     # Dynamic items per page
     display_settings = get_optimal_display_settings()
@@ -200,16 +202,8 @@ def main():
 
     # --- INTERACTIVE MODE ---
     
-    if not skip_welcome: # Don't show terminal tips if we skipped welcome
-        if not opt_result['size_changed']:
-            print(f"{Fore.YELLOW}Tip: For best experience, use iTerm2 or resize terminal to 130x45.{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}Detected terminal: {terminal_type}{Style.RESET_ALL}")
-            # Only pause if we didn't just run a command
-            if len(sys.argv) < 2: 
-                input(f"{Fore.CYAN}Press Enter to continue...{Style.RESET_ALL}")
-            clear_screen()
-        
-        time.sleep(0.3)
+    # Removed terminal resize tips - UI now adapts to any size
+    time.sleep(0.3)
 
     # Welcome and get starting directory
     # If using skip_welcome, current_dir is already set by the action
