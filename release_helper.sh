@@ -95,8 +95,8 @@ if [ -d "$TAP_DIR" ]; then
     
     # Update URL and SHA256 using escaped patterns
     escaped_url=$(echo "$tarball_url" | sed 's/[\/&]/\\&/g')
-    sed -i '' "s|url \".*\"|url \"$tarball_url\"|g" "$TAP_DIR/Formula/diskman.rb"
-    sed -i '' "s|sha256 \".*\"|sha256 \"$sha256\"|g" "$TAP_DIR/Formula/diskman.rb"
+    sed -i '' "s|^  url \".*\"|  url \"$tarball_url\"|g" "$TAP_DIR/Formula/diskman.rb"
+    sed -i '' "s|^  sha256 \".*\"|  sha256 \"$sha256\"|g" "$TAP_DIR/Formula/diskman.rb"
     
     echo "  ✓ Updated Formula/diskman.rb"
     
