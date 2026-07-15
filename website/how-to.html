@@ -107,7 +107,7 @@
                     <div id="brew-content" class="tab-content active" style="margin-top: 20px; width: 100%;">
                         <h3 style="margin-bottom: 16px;">Installation</h3>
                         <div class="code-block" style="width: 100%;">
-                            <span id="brew-cmd">brew install SamSeenX/apps/diskman</span>
+                            <span id="brew-cmd">brew trust samseenx/apps && brew install SamSeenX/apps/diskman</span>
                             <button class="copy-btn" onclick="copyCmd('brew-cmd')">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -117,8 +117,7 @@
                             </button>
                         </div>
                         <p style="margin-top: 12px; font-size: 0.9em; color: var(--text-tertiary);">Best for macOS
-                            users.
-                            Automatically manages updates.</p>
+                            users. Note: <code>brew trust</code> is required to allow Homebrew 6.0+ to load custom user formulas without security warnings.</p>
 
                         <h3 style="margin-top: 32px; margin-bottom: 16px;">Updating</h3>
                         <div class="code-block" style="width: 100%;">
@@ -133,7 +132,7 @@
                         </div>
                         <p style="margin-top: 12px; font-size: 0.9em; color: var(--text-tertiary);">
                             <code>brew update</code> fetches the latest formula, then <code>brew upgrade</code> installs
-                            it.
+                            it. If you see an untrusted tap warning, run: <code>brew trust samseenx/apps</code>.
                         </p>
                     </div>
 

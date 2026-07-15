@@ -49,12 +49,17 @@
 ### 🍺 Homebrew (Recommended)
 
 ```bash
+# Trust the tap first to prevent Homebrew untrusted tap warnings
+brew trust samseenx/apps
+
+# Install DiskMan
 brew install SamSeenX/apps/diskman
 ```
 
 ### Update via Homebrew
 
 ```bash
+# If you get an untrusted tap warning, run: brew trust samseenx/apps
 brew update && brew upgrade diskman
 ```
 
