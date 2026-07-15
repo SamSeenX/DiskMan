@@ -317,7 +317,7 @@ def check_and_install_pillow(stdscr):
             return False
 
 
-def compress_single_image(filepath, out_format, quality, save_style='o'):
+def compress_single_image(filepath, out_format, quality, save_style='o', compression_root=None):
     """Compresses a single image file, supporting backup-originals (o) or save-compressed-to-subfolder (c) modes."""
     from PIL import Image
     import shutil
@@ -332,7 +332,14 @@ def compress_single_image(filepath, out_format, quality, save_style='o'):
         base_name_no_ext = os.path.splitext(filename)[0]
         
         if save_style == 'o':
-            originals_dir = os.path.join(parent_dir, "originals")
+            if compression_root:
+                rel_dir = os.path.relpath(parent_dir, compression_root)
+                if rel_dir == '.':
+                    originals_dir = os.path.join(compression_root, "originals")
+                else:
+                    originals_dir = os.path.join(compression_root, "originals", rel_dir)
+            else:
+                originals_dir = os.path.join(parent_dir, "originals")
             os.makedirs(originals_dir, exist_ok=True)
             backup_path = os.path.join(originals_dir, filename)
             
@@ -1179,6 +1186,8 @@ def curses_main(stdscr):
                 continue
                 
             target_files = []
+            target_root = None
+            recursive = False
             
             if scope == 's':
                 if len(items) > 0:
@@ -1197,10 +1206,12 @@ def curses_main(stdscr):
                                 status_msg_time = time.time()
                                 continue
                             recursive = rec_input.lower() in ['y', 'yes']
+                            target_root = path
                             target_files = gather_images(path, recursive=recursive)
                     else:
                         if is_image_file(path):
                             target_files = [path]
+                            target_root = os.path.dirname(path)
                         else:
                             status_msg = "❌ Selected file is not a supported image format."
                             status_msg_time = time.time()
@@ -1212,6 +1223,7 @@ def curses_main(stdscr):
                     status_msg_time = time.time()
                     continue
                 recursive = rec_input.lower() in ['y', 'yes']
+                target_root = current_dir
                 target_files = gather_images(current_dir, recursive=recursive)
                 
             if not target_files:
@@ -1246,7 +1258,7 @@ def curses_main(stdscr):
                     quality = 69
             except ValueError:
                 quality = 69
-
+ 
             save_style_input = get_string_input(stdscr, "Save: [o]riginals in subfolder, or [c]ompressed in subfolder? (o/c)", default_val="c")
             if save_style_input is None:
                 status_msg = "ℹ️ Compression canceled."
@@ -1262,6 +1274,23 @@ def curses_main(stdscr):
                 status_msg = "⚠️ Aborted: Invalid save style option."
                 status_msg_time = time.time()
                 continue
+            
+            compression_root = None
+            if recursive and save_style == 'o':
+                backup_loc_input = get_string_input(stdscr, "Save originals in: [r]oot directory or [e]ach relative directory? (r/e)", default_val="e")
+                if backup_loc_input is None:
+                    status_msg = "ℹ️ Compression canceled."
+                    status_msg_time = time.time()
+                    continue
+                backup_loc_raw = backup_loc_input.lower()
+                if backup_loc_raw in ['r', 'root']:
+                    compression_root = target_root
+                elif backup_loc_raw in ['e', 'each', 'relative']:
+                    compression_root = None
+                else:
+                    status_msg = "⚠️ Aborted: Invalid backup location option."
+                    status_msg_time = time.time()
+                    continue
                 
             # Sort chronologically by birthtime/mtime to preserve timeline order
             target_files.sort(key=get_creation_time)
@@ -1275,7 +1304,7 @@ def curses_main(stdscr):
                 progress_msg = f"⚙️ Compressing image {idx+1}/{total_images}... ({os.path.basename(filepath)})"
                 draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner_frame, progress_msg)
                 
-                success, saved_bytes = compress_single_image(filepath, out_format, quality, save_style=save_style)
+                success, saved_bytes = compress_single_image(filepath, out_format, quality, save_style=save_style, compression_root=compression_root)
                 if success:
                     compressed_count += 1
                     total_saved += saved_bytes
