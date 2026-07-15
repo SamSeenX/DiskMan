@@ -10,6 +10,7 @@ import platform
 import subprocess
 import threading
 import time
+import queue
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 import shutil
@@ -84,13 +85,46 @@ class CursesDirectoryCache(DirectoryCache):
     def __init__(self):
         super().__init__()
         self.scanned_directories = set()
-        self.executor = ThreadPoolExecutor(max_workers=4)
+        self.queue = queue.Queue()
         self.cache_updated = False
         # Use RLock (Reentrant Lock) to prevent self-deadlocks
         self.cache_updated_lock = threading.RLock()
         self.calculating_dirs_lock = threading.RLock()
         self.calculating_dirs = set()
         self.scan_start_time = None
+        
+        # Start worker threads
+        self.workers = []
+        for _ in range(4):
+            t = threading.Thread(target=self._worker, daemon=True)
+            t.start()
+            self.workers.append(t)
+            
+    def _worker(self):
+        while True:
+            try:
+                task = self.queue.get()
+                if task is None:
+                    break
+                task()
+            except Exception:
+                pass
+            finally:
+                self.queue.task_done()
+                
+    def submit(self, fn):
+        self.queue.put(fn)
+
+    def shutdown(self):
+        # Clear queue and stop workers
+        while not self.queue.empty():
+            try:
+                self.queue.get_nowait()
+                self.queue.task_done()
+            except queue.Empty:
+                break
+        for _ in self.workers:
+            self.queue.put(None)
 
     def set_update_flag(self):
         with self.cache_updated_lock:
@@ -180,7 +214,7 @@ class CursesDirectoryCache(DirectoryCache):
                                 self.cache_updated = True # Direct assignment since we already hold the lock
                 return task
             
-            self.executor.submit(make_task(path))
+            self.submit(make_task(path))
 
         return self._apply_filters_and_sort(self.cache[self.scan_root])
 
@@ -418,18 +452,18 @@ def compress_single_image(filepath, out_format, quality, save_style='o', compres
 SCANNING_MESSAGES = [
     (0, "Starting up... 🚀"),
     (1, "Counting your files... 🧛"),
-    (2, "Still working... 😊"),
-    (3, "This folder is bigger than expected..."),
-    (4, "Wow, you really have a lot of stuff..."),
-    (5, "Did you ever delete anything? 🤔"),
-    (7, "I've seen smaller hard disks..."),
-    (10, "Making coffee while we wait... ☕"),
-    (15, "Maybe time for a snack break? 🍕"),
-    (20, "I'm not stuck, it's just... you have too many files! 😅"),
-    (30, "Still going... you might want to sit down 🪑"),
-    (40, "This is taking forever. Literally. ⏳"),
-    (50, "I'm starting to question my life choices... 🤷"),
-    (60, "We're still friends, right? 🥺")
+    (3, "Still working... 😊"),
+    (6, "This folder is bigger than expected..."),
+    (8, "Wow, you really have a lot of stuff..."),
+    (10, "Do you ever delete anything? 🤔"),
+    (12, "I've seen smaller hard disks..."),
+    (15, "Making coffee while we wait... ☕"),
+    (18, "Maybe time for a snack break? 🍕"),
+    (21, "I'm not stuck, it's just... you have too many files! 😅"),
+    (32, "Still going... you might want to sit down 🪑"),
+    (43, "This is taking forever. Literally. ⏳"),
+    (54, "I'm starting to question my life choices... 🤷"),
+    (65, "We're still friends, right? 🥺")
 ]
 
 
@@ -683,7 +717,7 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
                                                     du_cache.scan_start_time = None
                                             du_cache.set_update_flag()
                                         return task
-                                    du_cache.executor.submit(make_bg_task(sub_path))
+                                    du_cache.submit(make_bg_task(sub_path))
                         
                         subfolders.append((entry.name, sub_size))
             except Exception:
@@ -999,9 +1033,11 @@ def curses_main(stdscr):
         try:
             ch = stdscr.getch()
         except KeyboardInterrupt:
+            du_cache.shutdown()
             break
 
         if ch == ord('q') or ch == ord('Q'):
+            du_cache.shutdown()
             break
 
         elif ch == curses.KEY_DOWN:
@@ -1456,6 +1492,8 @@ def main():
         curses.wrapper(curses_main)
     except KeyboardInterrupt:
         pass
+    finally:
+        du_cache.shutdown()
     print_exit_message()
     sys.exit(0)
 
