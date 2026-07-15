@@ -90,6 +90,7 @@ class CursesDirectoryCache(DirectoryCache):
         self.cache_updated_lock = threading.RLock()
         self.calculating_dirs_lock = threading.RLock()
         self.calculating_dirs = set()
+        self.scan_start_time = None
 
     def set_update_flag(self):
         with self.cache_updated_lock:
@@ -128,6 +129,8 @@ class CursesDirectoryCache(DirectoryCache):
                             with self.calculating_dirs_lock:
                                 if path not in self.calculating_dirs:
                                     self.calculating_dirs.add(path)
+                                    if self.scan_start_time is None:
+                                        self.scan_start_time = time.time()
                                     needs_size_calc.append(path)
                     else:
                         size = stat.st_size
@@ -142,7 +145,7 @@ class CursesDirectoryCache(DirectoryCache):
             
         self.cache[self.scan_root] = self._apply_filters_and_sort(items)
         self.sizes[self.scan_root] = sum(item[1] for item in items if item[1] >= 0)
-
+ 
         # Submit individual size calculations one-by-one to ThreadPoolExecutor
         for path in needs_size_calc:
             def make_task(p):
@@ -154,6 +157,8 @@ class CursesDirectoryCache(DirectoryCache):
                     with self.calculating_dirs_lock:
                         if p in self.calculating_dirs:
                             self.calculating_dirs.remove(p)
+                        if not self.calculating_dirs:
+                            self.scan_start_time = None
                     
                     target_dir = os.path.dirname(p)
                     with self.cache_updated_lock:
@@ -410,6 +415,35 @@ def compress_single_image(filepath, out_format, quality, save_style='o', compres
         return False, 0
 
 
+SCANNING_MESSAGES = [
+    (0, "Starting up... 🚀"),
+    (1, "Counting your files... 🧛"),
+    (2, "Still working... 😊"),
+    (3, "This folder is bigger than expected..."),
+    (4, "Wow, you really have a lot of stuff..."),
+    (5, "Did you ever delete anything? 🤔"),
+    (7, "I've seen smaller hard disks..."),
+    (10, "Making coffee while we wait... ☕"),
+    (15, "Maybe time for a snack break? 🍕"),
+    (20, "I'm not stuck, it's just... you have too many files! 😅"),
+    (30, "Still going... you might want to sit down 🪑"),
+    (40, "This is taking forever. Literally. ⏳"),
+    (50, "I'm starting to question my life choices... 🤷"),
+    (60, "We're still friends, right? 🥺")
+]
+
+
+def get_funny_loading_message(start_time):
+    if start_time is None:
+        return ""
+    elapsed = int(time.time() - start_time)
+    message = SCANNING_MESSAGES[0][1]
+    for t, msg in SCANNING_MESSAGES:
+        if elapsed >= t:
+            message = msg
+    return message
+
+
 def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner_frame, status_msg=None):
     stdscr.erase()
     height, width = stdscr.getmaxyx()
@@ -484,6 +518,15 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
     if len(path_display) > max_path_len:
         path_display = "..." + path_display[-max_path_len+3:]
     safe_addstr(2, 5, path_display, curses.color_pair(2) | curses.A_BOLD)
+
+    # Draw funny loading easter egg message if scanning
+    if is_scanning and du_cache.scan_start_time is not None:
+        funny_msg = get_funny_loading_message(du_cache.scan_start_time)
+        if funny_msg:
+            funny_x = width - len(funny_msg) - 3
+            path_end_x = 5 + len(path_display)
+            if funny_x > path_end_x + 3:
+                safe_addstr(2, funny_x, funny_msg, curses.color_pair(4))
 
     # Headers for columns (Drawn at row 4, with line separation at row 5)
     col_idx_w = 4
@@ -627,6 +670,8 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
                             with du_cache.calculating_dirs_lock:
                                 if sub_path not in du_cache.calculating_dirs:
                                     du_cache.calculating_dirs.add(sub_path)
+                                    if du_cache.scan_start_time is None:
+                                        du_cache.scan_start_time = time.time()
                                     def make_bg_task(p):
                                         def task():
                                             sz = get_single_dir_size(p)
@@ -634,6 +679,8 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
                                             with du_cache.calculating_dirs_lock:
                                                 if p in du_cache.calculating_dirs:
                                                     du_cache.calculating_dirs.remove(p)
+                                                if not du_cache.calculating_dirs:
+                                                    du_cache.scan_start_time = None
                                             du_cache.set_update_flag()
                                         return task
                                     du_cache.executor.submit(make_bg_task(sub_path))
