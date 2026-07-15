@@ -6,6 +6,7 @@ from datetime import datetime
 from .curses_cache import du_cache, get_single_dir_size
 from .theme import THEMES
 from .image_compress import get_funny_loading_message
+from .utils import get_file_metadata
 
 SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 __version__ = "4.2.3-curses"
@@ -478,6 +479,37 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
                     safe_addstr(current_y, right_pane_x, f"• {disp_name}", curses.color_pair(1))
                     safe_addstr(current_y, right_pane_x + right_pane_width - len(sz_str) - 1, sz_str, sz_color)
                     current_y += 1
+
+        if not is_dir:
+            file_metadata = get_file_metadata(full_path)
+            if file_metadata:
+                if current_y + 4 < height - 4:
+                    # Draw divider line
+                    line = '├' + '─' * (width - split_col - 2) + '┤'
+                    safe_addstr(current_y, split_col, line, border_attr)
+                    current_y += 1
+                    
+                    safe_addstr(current_y, right_pane_x, " FILE METADATA ", curses.color_pair(1) | curses.A_BOLD)
+                    current_y += 1
+                    
+                    # Draw divider under title
+                    safe_addstr(current_y, right_pane_x, '─' * (right_pane_width), border_attr)
+                    current_y += 1
+                    
+                    # Render metadata key-values
+                    for meta_key, meta_val in file_metadata.items():
+                        if current_y >= height - 4:
+                            break
+                        safe_addstr(current_y, right_pane_x, f"{meta_key}:", curses.color_pair(4) | curses.A_BOLD)
+                        
+                        val_str = str(meta_val)
+                        val_x = right_pane_x + len(meta_key) + 2
+                        max_val_w = right_pane_width - len(meta_key) - 3
+                        if len(val_str) > max_val_w:
+                            val_str = val_str[:max_val_w - 3] + "..."
+                        
+                        safe_addstr(current_y, val_x, val_str, curses.color_pair(3))
+                        current_y += 1
 
         # Draw Divider Line and Help Card below metadata
         help_y = current_y + 1

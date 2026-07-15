@@ -51,7 +51,7 @@ def curses_main(stdscr):
 
     # Initialize with saved theme from cache file
     theme_index = load_theme_cache()
-    apply_theme(theme_index)
+    apply_theme(theme_index, stdscr)
 
     current_dir = os.path.realpath(os.getcwd())
     selected_idx = 0
@@ -269,14 +269,14 @@ def curses_main(stdscr):
 
         elif ch == ord('v'): # Cycle color themes forward
             theme_index = (theme_index + 1) % len(THEMES)
-            apply_theme(theme_index)
+            apply_theme(theme_index, stdscr)
             save_theme_cache(theme_index)
             status_msg = f"🎨 Theme changed to: {THEMES[theme_index][0]}"
             status_msg_time = time.time()
 
         elif ch == ord('V'): # Cycle color themes backward (Shift + V)
             theme_index = (theme_index - 1) % len(THEMES)
-            apply_theme(theme_index)
+            apply_theme(theme_index, stdscr)
             save_theme_cache(theme_index)
             status_msg = f"🎨 Theme changed to: {THEMES[theme_index][0]}"
             status_msg_time = time.time()

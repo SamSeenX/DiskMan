@@ -443,3 +443,207 @@ def open_file_explorer(item_path, name):
     except Exception as e:
         print(f"\n{Fore.RED}Error opening parent folder: {e}{Style.RESET_ALL}")
         return False
+
+def get_file_metadata(filepath):
+    """Extract metadata for various file types (Images, Audio, PDF, Text, Executables, Archives)."""
+    meta = {}
+    if not filepath or not os.path.isfile(filepath):
+        return meta
+        
+    ext = os.path.splitext(filepath)[1].lower()
+    
+    # Images
+    if ext in ('.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'):
+        try:
+            from PIL import Image
+            from PIL.ExifTags import TAGS
+            with Image.open(filepath) as img:
+                meta['Format'] = img.format
+                meta['Dimensions'] = f"{img.width}x{img.height}"
+                meta['Color Mode'] = img.mode
+                
+                # Check for resolution (DPI)
+                dpi = img.info.get('dpi')
+                if dpi:
+                    meta['Resolution'] = f"{int(dpi[0])} DPI"
+                    
+                # Check for animation frames
+                if getattr(img, 'is_animated', False):
+                    meta['Frames'] = str(getattr(img, 'n_frames', 1))
+                
+                exif_data = img.getexif()
+                if exif_data:
+                    exif_interesting = {
+                        'Make': 'Maker',
+                        'Model': 'Model',
+                        'DateTime': 'Captured',
+                        'Software': 'Software',
+                        'ExposureTime': 'Exposure',
+                        'FNumber': 'Aperture',
+                        'ISOSpeedRatings': 'ISO',
+                        'LensModel': 'Lens',
+                        'FocalLength': 'Focal Len',
+                        'Flash': 'Flash',
+                        'Orientation': 'Orientation'
+                    }
+                    for tag_id, value in exif_data.items():
+                        tag_name = TAGS.get(tag_id, tag_id)
+                        if tag_name in exif_interesting:
+                            if tag_name == 'ExposureTime' and isinstance(value, tuple) and len(value) == 2:
+                                value = f"{value[0]}/{value[1]}s"
+                            elif tag_name == 'FocalLength':
+                                if isinstance(value, tuple) and len(value) == 2:
+                                    value = f"{value[0]/value[1]:.1f}mm"
+                                else:
+                                    value = f"{float(value):.1f}mm"
+                            elif tag_name == 'Flash':
+                                try:
+                                    value = "Fired" if (int(value) & 1) else "Did not fire"
+                                except Exception:
+                                    pass
+                            elif tag_name == 'Orientation':
+                                orient_map = {
+                                    1: 'Horizontal',
+                                    2: 'Mirror horizontal',
+                                    3: 'Rotate 180',
+                                    4: 'Mirror vertical',
+                                    5: 'Mirror horiz + rot 270 CW',
+                                    6: 'Rotate 90 CW',
+                                    7: 'Mirror horiz + rot 90 CW',
+                                    8: 'Rotate 270 CW'
+                                }
+                                value = orient_map.get(value, str(value))
+                            meta[exif_interesting[tag_name]] = str(value)
+                            
+                    # Decode GPS info if available (Tag ID: 34853)
+                    gps_info = exif_data.get(34853)
+                    if gps_info:
+                        try:
+                            # 1=LatRef, 2=Lat, 3=LonRef, 4=Lon, 6=Alt
+                            lat_ref = gps_info.get(1)
+                            lat = gps_info.get(2)
+                            lon_ref = gps_info.get(3)
+                            lon = gps_info.get(4)
+                            
+                            def to_dec(coord, ref):
+                                if not coord or not ref:
+                                    return None
+                                def to_f(v):
+                                    if isinstance(v, tuple) and len(v) == 2:
+                                        return v[0] / v[1]
+                                    return float(v)
+                                try:
+                                    d = to_f(coord[0])
+                                    m = to_f(coord[1])
+                                    s = to_f(coord[2])
+                                    dec = d + (m / 60.0) + (s / 3600.0)
+                                    if ref in ('S', 'W'):
+                                        dec = -dec
+                                    return dec
+                                except Exception:
+                                    return None
+                            
+                            lat_dec = to_dec(lat, lat_ref)
+                            lon_dec = to_dec(lon, lon_ref)
+                            if lat_dec is not None and lon_dec is not None:
+                                meta['GPS'] = f"{lat_dec:.4f}, {lon_dec:.4f}"
+                                
+                            alt = gps_info.get(6)
+                            if alt:
+                                def to_f(v):
+                                    if isinstance(v, tuple) and len(v) == 2:
+                                        return v[0] / v[1]
+                                    return float(v)
+                                meta['Altitude'] = f"{to_f(alt):.1f}m"
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+            
+    # Audio (WAV)
+    elif ext == '.wav':
+        try:
+            import wave
+            with wave.open(filepath, 'rb') as w:
+                ch = w.getnchannels()
+                rate = w.getframerate()
+                frames = w.getnframes()
+                dur = frames / float(rate)
+                meta['Type'] = 'WAV Audio'
+                meta['Channels'] = 'Stereo' if ch == 2 else 'Mono' if ch == 1 else str(ch)
+                meta['Sample Rate'] = f"{rate / 1000.0:.1f} kHz"
+                meta['Duration'] = f"{dur:.2f}s"
+        except Exception:
+            pass
+            
+    # PDF
+    elif ext == '.pdf':
+        try:
+            with open(filepath, 'rb') as f:
+                content = f.read(1024)
+                f.seek(0, 2)
+                file_size = f.tell()
+                if file_size > 1024:
+                    f.seek(max(0, file_size - 4096))
+                    content += f.read()
+                text = content.decode('latin-1', errors='ignore')
+                
+                import re
+                pages_match = re.search(r'/Count\s+(\d+)', text)
+                if pages_match:
+                    meta['Pages'] = pages_match.group(1)
+                    
+                title_match = re.search(r'/Title\s*\((.*?)\)', text)
+                if title_match:
+                    meta['Title'] = title_match.group(1)[:25]
+                author_match = re.search(r'/Author\s*\((.*?)\)', text)
+                if author_match:
+                    meta['Author'] = author_match.group(1)[:25]
+        except Exception:
+            pass
+            
+    # Executables / Binaries
+    elif ext in ('.exe', '.dll', '.so', '.dylib', '', '.bin'):
+        try:
+            with open(filepath, 'rb') as f:
+                magic = f.read(4)
+                if magic.startswith(b'\x7fELF'):
+                    meta['Type'] = 'ELF Binary'
+                    elf_class = f.read(1)
+                    meta['Arch'] = '64-bit' if elf_class == b'\x02' else '32-bit'
+                elif magic.startswith(b'MZ'):
+                    meta['Type'] = 'PE Binary'
+                elif magic in (b'\xcf\xfa\xed\xfe', b'\xfe\xed\xfa\xcf'):
+                    meta['Type'] = 'Mach-O 64-bit'
+                elif magic in (b'\xce\xfa\xed\xfe', b'\xfe\xed\xfa\xce'):
+                    meta['Type'] = 'Mach-O 32-bit'
+        except Exception:
+            pass
+            
+    # Archives
+    elif ext in ('.zip', '.tar', '.gz', '.tgz'):
+        try:
+            import zipfile
+            import tarfile
+            if zipfile.is_zipfile(filepath):
+                with zipfile.ZipFile(filepath) as z:
+                    meta['Type'] = 'ZIP Archive'
+                    meta['Files'] = str(len(z.namelist()))
+            elif tarfile.is_tarfile(filepath):
+                with tarfile.open(filepath) as t:
+                    meta['Type'] = 'TAR Archive'
+                    meta['Files'] = str(len(t.getnames()))
+        except Exception:
+            pass
+            
+    # Code / Text files
+    elif ext in ('.txt', '.py', '.js', '.ts', '.html', '.css', '.json', '.yaml', '.yml', '.md', '.csv', '.xml', '.sh', '.bat'):
+        try:
+            with open(filepath, 'r', errors='ignore') as f:
+                lines = f.readlines()
+                meta['Lines'] = str(len(lines))
+                meta['Chars'] = str(sum(len(l) for l in lines))
+        except Exception:
+            pass
+            
+    return meta
