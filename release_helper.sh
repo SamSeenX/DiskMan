@@ -9,7 +9,7 @@ echo "🚀 Starting DiskMan Release Process..."
 echo ""
 
 # 1. Get current version - more robust extraction
-current_version=$(grep -m1 '__version__' DiskMan.py | sed 's/.*"\([^"]*\)".*/\1/')
+current_version=$(grep -m1 '__version__' lib/tui_draw.py | sed 's/.*"\([^"]*\)".*/\1/')
 echo "Current version: $current_version"
 
 # 2. Ask for new version
@@ -19,16 +19,16 @@ if [ -n "$new_version" ] && [ "$new_version" != "$current_version" ]; then
     echo ""
     echo "Updating version to $new_version..."
     
-    # Update DiskMan.py - use exact pattern matching
-    sed -i '' 's/__version__ = "'$current_version'"/__version__ = "'$new_version'"/' DiskMan.py
+    # Update lib/tui_draw.py - use exact pattern matching
+    sed -i '' 's/__version__ = "'$current_version'"/__version__ = "'$new_version'"/' lib/tui_draw.py
     
     # Verify the update worked
-    updated_version=$(grep -m1 '__version__' DiskMan.py | sed 's/.*"\([^"]*\)".*/\1/')
+    updated_version=$(grep -m1 '__version__' lib/tui_draw.py | sed 's/.*"\([^"]*\)".*/\1/')
     if [ "$updated_version" != "$new_version" ]; then
-        echo "❌ ERROR: Failed to update DiskMan.py"
+        echo "❌ ERROR: Failed to update lib/tui_draw.py"
         exit 1
     fi
-    echo "  ✓ Updated DiskMan.py"
+    echo "  ✓ Updated lib/tui_draw.py"
     
     # Update setup.py
     if [ -f "setup.py" ]; then
@@ -37,7 +37,7 @@ if [ -n "$new_version" ] && [ "$new_version" != "$current_version" ]; then
     fi
     
     # Commit changes
-    git add DiskMan.py setup.py
+    git add lib/tui_draw.py setup.py
     git commit -m "Bump version to $new_version"
     echo "  ✓ Committed changes"
     
