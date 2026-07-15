@@ -9,7 +9,7 @@ from .image_compress import get_funny_loading_message
 from .utils import get_file_metadata
 
 SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-__version__ = "4.2.3-curses"
+__version__ = "4.2.4-curses"
 
 
 def get_string_input(stdscr, prompt, default_val=None, autocomplete_path=False, initial_value=""):
