@@ -276,9 +276,10 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
     # Headers for columns (Drawn at row 4, with line separation at row 5)
     col_idx_w = 4
     col_size_w = 11
-    col_bar_w = 12
+    col_bar_w = 16
     col_type_w = 6
     col_name_w = split_col - col_idx_w - col_size_w - col_bar_w - col_type_w - 4 # Spacing padding
+
 
     headers = (
         f"{'#':<{col_idx_w}} "
@@ -319,7 +320,7 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
             size_str = "Calculating..."
             
         # Draw visual ratio bar charts
-        bar_len = col_bar_w - 4
+        bar_len = 8
         if max_size > 0 and size > 0:
             ratio = size / max_size
             filled = int(ratio * bar_len)
