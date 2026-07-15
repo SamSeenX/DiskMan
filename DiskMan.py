@@ -611,6 +611,75 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
             safe_addstr(current_y, val_x, val_display, val_color)
             current_y += 1
 
+        # Get and display top subfolders if it's a directory
+        subfolders = []
+        if is_dir:
+            try:
+                for entry in os.scandir(full_path):
+                    if entry.is_dir(follow_symlinks=False):
+                        if not du_cache.show_hidden and entry.name.startswith('.'):
+                            continue
+                        sub_path = os.path.realpath(entry.path)
+                        sub_size = du_cache.sizes.get(sub_path, -1)
+                        
+                        # Trigger background calculation if size is unknown and not already in progress
+                        if sub_size < 0:
+                            with du_cache.calculating_dirs_lock:
+                                if sub_path not in du_cache.calculating_dirs:
+                                    du_cache.calculating_dirs.add(sub_path)
+                                    def make_bg_task(p):
+                                        def task():
+                                            sz = get_single_dir_size(p)
+                                            du_cache.sizes[p] = sz
+                                            with du_cache.calculating_dirs_lock:
+                                                if p in du_cache.calculating_dirs:
+                                                    du_cache.calculating_dirs.remove(p)
+                                            du_cache.set_update_flag()
+                                        return task
+                                    du_cache.executor.submit(make_bg_task(sub_path))
+                        
+                        subfolders.append((entry.name, sub_size))
+            except Exception:
+                pass
+            
+            # Sort subfolders by size descending (putting "Calculating..." at bottom)
+            subfolders.sort(key=lambda x: (x[1] >= 0, x[1]), reverse=True)
+
+        if is_dir and subfolders:
+            if current_y + 4 < height - 4:
+                # Draw divider line
+                line = '├' + '─' * (width - split_col - 2) + '┤'
+                safe_addstr(current_y, split_col, line, border_attr)
+                current_y += 1
+                
+                safe_addstr(current_y, right_pane_x, " TOP SUBFOLDERS ", curses.color_pair(1) | curses.A_BOLD)
+                current_y += 1
+                
+                # Draw divider under title
+                safe_addstr(current_y, right_pane_x, '─' * (right_pane_width), border_attr)
+                current_y += 1
+                
+                # Show up to 10 subfolders
+                for sf_name, sf_sz in subfolders[:10]:
+                    if current_y >= height - 4:
+                        break
+                    
+                    sz_str = humanize.naturalsize(sf_sz) if sf_sz >= 0 else "Calculating..."
+                    sz_color = curses.color_pair(3) if sf_sz >= 0 else curses.color_pair(4)
+                    
+                    # Truncate subfolder name if it exceeds pane width
+                    max_name_w = right_pane_width - len(sz_str) - 6
+                    if max_name_w < 5:
+                        max_name_w = 5
+                    
+                    disp_name = sf_name
+                    if len(disp_name) > max_name_w:
+                        disp_name = disp_name[:max_name_w - 3] + "..."
+                    
+                    safe_addstr(current_y, right_pane_x, f"• {disp_name}", curses.color_pair(1))
+                    safe_addstr(current_y, right_pane_x + right_pane_width - len(sz_str) - 1, sz_str, sz_color)
+                    current_y += 1
+
         # Draw Divider Line and Help Card below metadata
         help_y = current_y + 1
         if help_y + 8 < height - 4:
