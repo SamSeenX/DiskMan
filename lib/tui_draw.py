@@ -8,7 +8,7 @@ from .theme import THEMES
 from .image_compress import get_funny_loading_message
 
 SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-__version__ = "4.2.2-curses"
+__version__ = "4.2.3-curses"
 
 
 def get_string_input(stdscr, prompt, default_val=None, autocomplete_path=False, initial_value=""):
