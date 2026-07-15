@@ -203,6 +203,9 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
     # Border attribute (Dimmed Border color pair)
     border_attr = curses.color_pair(6) | curses.A_DIM
 
+    # Calculate total size of directory contents
+    total_size = sum(item[1] for item in items if item[1] > 0)
+
     # Split Column calculation (Left pane is 70% width)
     split_col = int(width * 0.70)
 
@@ -248,8 +251,9 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
         if du_cache.calculating_dirs:
             is_scanning = True
 
+    total_size_str = humanize.naturalsize(total_size)
     spinner_char = SPINNER_FRAMES[spinner_frame]
-    status_text = f"[ {spinner_char} SCANNING... ]" if is_scanning else "[ ✓ SCAN COMPLETE ]"
+    status_text = f"[ {total_size_str} │ {spinner_char} SCANNING... ]" if is_scanning else f"[ {total_size_str} │ ✓ SCAN COMPLETE ]"
     status_color = curses.color_pair(4) if is_scanning else curses.color_pair(3)
 
     status_x = width - len(status_text) - 3
@@ -300,7 +304,7 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
     elif selected_idx >= scroll_offset + max_visible_rows:
         scroll_offset = selected_idx - max_visible_rows + 1
 
-    # Extract max size for ratio visualization bar calculations
+    # Extract max size for ratio visualization bar calculations, and total size for percentages
     max_size = 1
     for name, size, is_dir, is_hid, mtime in items:
         if size > max_size:
@@ -330,11 +334,14 @@ def draw_screen(stdscr, current_dir, items, selected_idx, scroll_offset, spinner
             
         filled = max(0, min(bar_len, filled))
         bar_str = "[" + "■" * filled + " " * (bar_len - filled) + "]"
-        pct_str = f"{int(ratio * 100):>3}%"
         
-        if ratio > 0.70:
+        # Percentage calculation based on total size of directory contents
+        pct_val = (size / total_size * 100) if total_size > 0 and size > 0 else 0
+        pct_str = f"{int(pct_val):>3}%"
+        
+        if pct_val > 10:
             pct_color = curses.color_pair(5) # Red
-        elif ratio > 0.35:
+        elif pct_val > 5:
             pct_color = curses.color_pair(4) # Yellow
         else:
             pct_color = curses.color_pair(3) # Green
